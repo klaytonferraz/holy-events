@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Holy Events — Gestão de Operações</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #C9A84C; --gold-light: #E8C97A; --gold-dark: #8B6914;
+  --black: #0A0A0A; --dark: #111111; --dark2: #1A1A1A; --dark3: #242424;
+  --surface: #2A2A2A; --surface2: #333333;
+  --text: #F0EDE8; --text-muted: #9A9A8A;
+  --green: #4CAF7C; --red: #E05252; --amber: #E0A252; --blue: #5290E0; --purple: #A07AF0;
+  --radius: 12px; --radius-sm: 8px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'DM Sans',sans-serif; background:var(--black); color:var(--text); min-height:100vh; overflow-x:hidden; }
+
+/* SIDEBAR */
+.sidebar { position:fixed; left:0; top:0; bottom:0; width:240px; background:var(--dark); border-right:1px solid rgba(201,168,76,0.15); display:flex; flex-direction:column; z-index:100; transition:transform 0.3s ease; }
+.sidebar-logo { padding:28px 24px 20px; border-bottom:1px solid rgba(201,168,76,0.1); }
+.logo-title { font-family:'Playfair Display',serif; font-size:24px; font-weight:900; color:var(--gold); letter-spacing:1px; }
+.logo-sub { font-size:11px; color:var(--text-muted); letter-spacing:2px; text-transform:uppercase; margin-top:2px; }
+.nav-section { padding:16px 12px 8px; }
+.nav-label { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); padding:0 12px; margin-bottom:6px; }
+.nav-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:var(--radius-sm); cursor:pointer; color:var(--text-muted); font-size:14px; font-weight:500; transition:all 0.2s; border:none; background:none; width:100%; text-align:left; }
+.nav-item:hover { background:var(--dark3); color:var(--text); }
+.nav-item.active { background:rgba(201,168,76,0.12); color:var(--gold); }
+.nav-item .icon { font-size:16px; width:20px; text-align:center; }
+.divider { height:1px; background:rgba(255,255,255,0.06); margin:4px 12px; }
+
+/* MAIN */
+.main { margin-left:240px; min-height:100vh; background:var(--black); }
+.topbar { padding:20px 32px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:space-between; background:var(--dark); position:sticky; top:0; z-index:50; }
+.page-title { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; color:var(--text); }
+
+/* BUTTONS */
+.btn { padding:9px 20px; border-radius:var(--radius-sm); font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; border:none; transition:all 0.2s; display:inline-flex; align-items:center; gap:6px; }
+.btn-gold { background:var(--gold); color:var(--black); }
+.btn-gold:hover { background:var(--gold-light); }
+.btn-outline { background:transparent; color:var(--text-muted); border:1px solid rgba(255,255,255,0.12); }
+.btn-outline:hover { border-color:var(--gold); color:var(--gold); }
+.btn-danger { background:rgba(224,82,82,0.15); color:var(--red); border:1px solid rgba(224,82,82,0.3); }
+.btn-danger:hover { background:rgba(224,82,82,0.25); }
+.btn-sm { padding:5px 12px; font-size:12px; }
+.btn-ghost { background:rgba(255,255,255,0.04); color:var(--text-muted); border:1px solid rgba(255,255,255,0.06); }
+.btn-ghost:hover { background:rgba(255,255,255,0.08); color:var(--text); }
+
+/* CONTENT */
+.content { padding:28px 32px; }
+.page { display:none; }
+.page.active { display:block; }
+
+/* STATS */
+.stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px; }
+.stat-card { background:var(--dark2); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:20px; position:relative; overflow:hidden; }
+.stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--gold); opacity:0.6; }
+.stat-label { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1.5px; }
+.stat-value { font-family:'Playfair Display',serif; font-size:32px; font-weight:700; color:var(--gold); margin:6px 0 2px; }
+.stat-sub { font-size:12px; color:var(--text-muted); }
+
+/* CARD */
+.card { background:var(--dark2); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); overflow:hidden; margin-bottom:20px; }
+.card-header { padding:18px 24px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+.card-title { font-family:'Playfair Display',serif; font-size:17px; font-weight:700; color:var(--text); }
+
+/* TABLE */
+table { width:100%; border-collapse:collapse; }
+th { font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--text-muted); font-weight:600; padding:12px 16px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.06); white-space:nowrap; }
+td { padding:12px 16px; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:rgba(255,255,255,0.02); }
+
+/* BADGES */
+.badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; letter-spacing:0.5px; white-space:nowrap; }
+.badge-green { background:rgba(76,175,124,0.15); color:var(--green); border:1px solid rgba(76,175,124,0.3); }
+.badge-red { background:rgba(224,82,82,0.15); color:var(--red); border:1px solid rgba(224,82,82,0.3); }
+.badge-amber { background:rgba(224,162,82,0.15); color:var(--amber); border:1px solid rgba(224,162,82,0.3); }
+.badge-blue { background:rgba(82,144,224,0.15); color:var(--blue); border:1px solid rgba(82,144,224,0.3); }
+.badge-gold { background:rgba(201,168,76,0.15); color:var(--gold); border:1px solid rgba(201,168,76,0.3); }
+.badge-purple { background:rgba(160,122,240,0.15); color:var(--purple); border:1px solid rgba(160,122,240,0.3); }
+
+.tag { display:inline-block; background:var(--surface); color:var(--text-muted); padding:2px 8px; border-radius:4px; font-size:11px; margin:1px; }
+.city-tag { display:inline-block; padding:2px 8px; background:rgba(201,168,76,0.1); color:var(--gold-light); border-radius:4px; font-size:11px; margin:1px; }
+.seg-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; margin:1px; }
+
+/* FORMS */
+.search-input { background:var(--dark3); border:1px solid rgba(255,255,255,0.1); border-radius:var(--radius-sm); padding:8px 14px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:13px; width:240px; outline:none; transition:border-color 0.2s; }
+.search-input:focus { border-color:var(--gold); }
+.search-input::placeholder { color:var(--text-muted); }
+
+/* MODAL */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.75); backdrop-filter:blur(4px); z-index:200; display:none; align-items:center; justify-content:center; padding:16px; }
+.modal-overlay.open { display:flex; }
+.modal { background:var(--dark2); border:1px solid rgba(201,168,76,0.2); border-radius:var(--radius); width:560px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 24px 80px rgba(0,0,0,0.6); }
+.modal-header { padding:24px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; background:var(--dark2); z-index:1; }
+.modal-title { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; }
+.modal-close { background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer; padding:4px; border-radius:4px; transition:color 0.2s; }
+.modal-close:hover { color:var(--text); }
+.modal-body { padding:24px; }
+.modal-footer { padding:16px 24px; border-top:1px solid rgba(255,255,255,0.06); display:flex; gap:10px; justify-content:flex-end; }
+.form-group { margin-bottom:18px; }
+label { display:block; font-size:12px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+input[type=text], input[type=date], input[type=number], input[type=email], select, textarea { width:100%; background:var(--dark3); border:1px solid rgba(255,255,255,0.1); border-radius:var(--radius-sm); padding:10px 14px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:14px; outline:none; transition:border-color 0.2s; }
+input:focus, select:focus, textarea:focus { border-color:var(--gold); }
+select option { background:var(--dark2); }
+textarea { resize:vertical; min-height:70px; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.form-row-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+
+/* CHECKBOX PILL */
+.check-group { display:flex; flex-wrap:wrap; gap:6px; }
+.check-pill { display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border:1px solid rgba(255,255,255,0.1); border-radius:6px; font-size:13px; color:var(--text-muted); cursor:pointer; transition:all 0.15s; user-select:none; }
+.check-pill input { display:none; }
+.check-pill.checked { background:rgba(201,168,76,0.12); border-color:var(--gold); color:var(--gold); }
+.check-pill:hover:not(.checked) { border-color:rgba(255,255,255,0.2); color:var(--text); }
+
+/* EVENTS */
+.events-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:16px; margin-bottom:20px; }
+.event-card { background:var(--dark2); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:20px; cursor:pointer; transition:all 0.2s; position:relative; overflow:hidden; }
+.event-card:hover { border-color:rgba(201,168,76,0.3); transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,0,0,0.3); }
+.event-card::after { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--gold),transparent); }
+.event-name { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; margin-bottom:4px; }
+.event-client { font-size:12px; color:var(--gold); margin-bottom:6px; letter-spacing:0.5px; }
+.event-meta { font-size:12px; color:var(--text-muted); margin-bottom:14px; display:flex; gap:10px; flex-wrap:wrap; }
+.event-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.06); }
+.event-stat-val { font-size:20px; font-weight:700; color:var(--gold); font-family:'Playfair Display',serif; text-align:center; }
+.event-stat-label { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; text-align:center; }
+
+/* SEGMENTOS CONFIG */
+.seg-config-row { display:flex; align-items:center; gap:10px; padding:10px 14px; background:var(--dark3); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius-sm); margin-bottom:6px; }
+.seg-color-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.seg-name-input { flex:1; background:transparent; border:none; color:var(--text); font-size:13px; font-weight:600; padding:0; }
+.seg-name-input:focus { outline:none; }
+.seg-vagas-input { width:60px; background:var(--surface); border:1px solid rgba(255,255,255,0.08); border-radius:4px; color:var(--text); font-size:13px; padding:4px 8px; text-align:center; }
+.seg-vagas-input:focus { outline:none; border-color:var(--gold); }
+
+/* ESCALA CALENDAR */
+.cal-month-header { display:flex; align-items:center; gap:12px; margin:20px 0 12px; }
+.cal-month-title { font-family:'Playfair Display',serif; font-size:16px; font-weight:700; color:var(--gold); }
+.day-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px; margin-bottom:20px; }
+.day-card { background:var(--dark2); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius-sm); overflow:hidden; }
+.day-card.today { border-color:var(--gold); }
+.day-card.past { opacity:0.55; }
+.day-card-header { background:var(--dark3); padding:8px 10px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.06); }
+.day-name { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); }
+.day-num { font-size:16px; font-weight:700; color:var(--text); }
+.day-card.today .day-name, .day-card.today .day-num { color:var(--gold); }
+.day-ops { padding:6px; min-height:50px; }
+.op-chip { padding:5px 8px; border-radius:5px; margin-bottom:3px; font-size:11px; background:var(--surface); border-left:3px solid var(--text-muted); cursor:pointer; transition:background 0.15s; }
+.op-chip:hover { background:var(--surface2); }
+.op-chip-name { font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.op-chip-seg { color:var(--text-muted); font-size:10px; }
+.day-empty { font-size:11px; color:var(--text-muted); text-align:center; padding:12px 0; opacity:0.4; }
+.add-op-btn { display:block; width:100%; background:none; border:none; color:var(--text-muted); font-size:11px; padding:4px; cursor:pointer; text-align:center; transition:color 0.15s; }
+.add-op-btn:hover { color:var(--gold); }
+
+/* TABS */
+.tabs { display:flex; gap:4px; flex-wrap:wrap; }
+.tab { padding:7px 16px; border-radius:var(--radius-sm); font-size:13px; font-weight:500; cursor:pointer; border:none; background:none; color:var(--text-muted); transition:all 0.2s; }
+.tab.active { background:rgba(201,168,76,0.15); color:var(--gold); }
+.tab:hover:not(.active) { color:var(--text); background:rgba(255,255,255,0.05); }
+
+/* PROGRESS BAR */
+.progress-bar { height:6px; background:var(--dark3); border-radius:3px; overflow:hidden; }
+.progress-fill { height:100%; background:var(--gold); border-radius:3px; transition:width 0.5s; }
+
+/* FILTER BAR */
+.filter-bar { display:flex; gap:6px; flex-wrap:wrap; }
+.filter-btn { padding:5px 13px; border-radius:20px; font-size:12px; font-weight:500; cursor:pointer; border:1px solid rgba(255,255,255,0.1); background:none; color:var(--text-muted); transition:all 0.2s; }
+.filter-btn.active, .filter-btn:hover { color:var(--gold); border-color:var(--gold); background:rgba(201,168,76,0.1); }
+
+/* EMPTY */
+.empty-state { padding:60px 24px; text-align:center; color:var(--text-muted); }
+.empty-icon { font-size:40px; margin-bottom:14px; opacity:0.35; }
+
+/* SECTION DIV */
+.section-div { display:flex; align-items:center; gap:10px; margin:20px 0 14px; color:var(--text-muted); font-size:11px; text-transform:uppercase; letter-spacing:1.5px; font-weight:600; }
+.section-div::before, .section-div::after { content:''; flex:1; height:1px; background:rgba(255,255,255,0.06); }
+
+/* TOAST */
+.toast { position:fixed; bottom:24px; right:24px; background:var(--dark2); border:1px solid rgba(201,168,76,0.3); border-radius:var(--radius-sm); padding:12px 20px; font-size:14px; color:var(--gold); z-index:999; transform:translateY(80px); opacity:0; transition:all 0.3s; box-shadow:0 8px 32px rgba(0,0,0,0.4); }
+.toast.show { transform:translateY(0); opacity:1; }
+
+/* HAMBURGER */
+.hamburger { display:none; background:none; border:none; color:var(--text); font-size:22px; cursor:pointer; padding:4px; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--surface); border-radius:3px; }
+
+@media (max-width:768px) {
+  .sidebar { transform:translateX(-100%); }
+  .sidebar.open { transform:translateX(0); }
+  .main { margin-left:0; }
+  .hamburger { display:block; }
+  .stats-grid { grid-template-columns:repeat(2,1fr); }
+  .content { padding:16px; }
+  .topbar { padding:14px 16px; }
+  .form-row, .form-row-3 { grid-template-columns:1fr; }
+  .day-grid { grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); }
+}
+
+.actions-cell { display:flex; gap:6px; flex-wrap:wrap; }
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-title">Holy</div>
+    <div class="logo-sub">Events Manager</div>
+  </div>
+  <nav class="nav-section">
+    <div class="nav-label">Principal</div>
+    <button class="nav-item active" onclick="nav('dashboard')"><span class="icon">◈</span> Dashboard</button>
+    <button class="nav-item" onclick="nav('eventos')"><span class="icon">◉</span> Eventos</button>
+    <button class="nav-item" onclick="nav('escala')"><span class="icon">◫</span> Escalas</button>
+  </nav>
+  <div class="divider"></div>
+  <nav class="nav-section">
+    <div class="nav-label">Cadastros</div>
+    <button class="nav-item" onclick="nav('operadores')"><span class="icon">◎</span> Operadores</button>
+    <button class="nav-item" onclick="nav('segmentos')"><span class="icon">◧</span> Segmentos</button>
+    <button class="nav-item" onclick="nav('clientes')"><span class="icon">◑</span> Clientes</button>
+  </nav>
+</aside>
+
+<main class="main">
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:16px">
+      <button class="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+      <h1 class="page-title" id="pageTitle">Dashboard</h1>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap" id="topbarActions"></div>
+  </header>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid" id="dashStats"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Eventos Ativos</span></div>
+          <div id="dashEventos" style="padding:16px"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Operadores por Segmento</span></div>
+          <div id="dashSegmentos" style="padding:16px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVENTOS -->
+    <div class="page" id="page-eventos">
+      <div class="events-grid" id="eventsGrid"></div>
+    </div>
+
+    <!-- ESCALA -->
+    <div class="page" id="page-escala">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:20px;padding:16px;background:var(--dark2);border-radius:var(--radius);border:1px solid rgba(255,255,255,0.06)">
+        <div class="form-group" style="margin:0;flex:1;min-width:180px">
+          <label>Evento</label>
+          <select id="escalaEvSel" onchange="onEscalaEventoChange()"></select>
+        </div>
+        <div class="form-group" style="margin:0;flex:1;min-width:140px">
+          <label>Cidade</label>
+          <select id="escalaCidSel" onchange="renderEscala()"></select>
+        </div>
+      </div>
+      <div id="escalaContent"></div>
+    </div>
+
+    <!-- OPERADORES -->
+    <div class="page" id="page-operadores">
+      <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+        <input class="search-input" id="opSearch" placeholder="🔍 Buscar..." oninput="renderOperadores()" style="flex:1;min-width:180px">
+        <div class="filter-bar" id="opFilters"></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Banco de Operadores</span>
+          <span id="opCount" style="font-size:13px;color:var(--text-muted)"></span>
+        </div>
+        <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Empresa</th><th>Produto</th><th>Segmentos</th><th>Tipo</th><th>POC / Telefone</th><th>Cidade(s)</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="opTable"></tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEGMENTOS -->
+    <div class="page" id="page-segmentos">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Segmentos de Operação</span>
+          <button class="btn btn-gold btn-sm" onclick="openModalSegmento()">+ Novo Segmento</button>
+        </div>
+        <div style="padding:16px" id="segmentosGrid"></div>
+      </div>
+    </div>
+
+    <!-- CLIENTES -->
+    <div class="page" id="page-clientes">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Clientes</span>
+          <button class="btn btn-gold btn-sm" onclick="openModalCliente()">+ Novo Cliente</button>
+        </div>
+        <table>
+          <thead><tr><th>Nome</th><th>Contato</th><th>Email / Telefone</th><th>Observações</th><th>Ações</th></tr></thead>
+          <tbody id="clientesTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<!-- ===== MODAL EVENTO ===== -->
+<div class="modal-overlay" id="mEvento">
+  <div class="modal" style="width:640px">
+    <div class="modal-header">
+      <span class="modal-title" id="mEventoTitle">Novo Evento</span>
+      <button class="modal-close" onclick="closeModal('mEvento')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nome do Evento *</label>
+          <input type="text" id="evNome" placeholder="Ex: Brilha Sonhos">
+        </div>
+        <div class="form-group">
+          <label>Cliente</label>
+          <select id="evCliente"><option value="">— Selecionar —</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Data Início</label>
+          <input type="date" id="evInicio">
+        </div>
+        <div class="form-group">
+          <label>Data Fim</label>
+          <input type="date" id="evFim">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Dias de Operação</label>
+        <div class="check-group" id="evDias"></div>
+      </div>
+      <div class="form-group">
+        <label>Cidades</label>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input type="text" id="evCidadeInput" placeholder="Adicionar cidade..." style="flex:1" onkeydown="if(event.key==='Enter'){addCidadeEvento();event.preventDefault()}">
+          <button class="btn btn-ghost btn-sm" onclick="addCidadeEvento()">+ Add</button>
+        </div>
+        <div id="evCidadesList" class="check-group"></div>
+      </div>
+      <div class="section-div">Segmentos & Vagas</div>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Defina quais segmentos este evento terá e quantas vagas por segmento.</p>
+      <div id="evSegmentos"></div>
+      <div class="form-group" style="margin-top:16px">
+        <label>Observações</label>
+        <textarea id="evObs" placeholder="Notas sobre o evento..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('mEvento')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarEvento()">Salvar Evento</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL OPERADOR ===== -->
+<div class="modal-overlay" id="mOperador">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="mOpTitle">Novo Operador</span>
+      <button class="modal-close" onclick="closeModal('mOperador')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Empresa *</label>
+          <input type="text" id="opNome" placeholder="Nome da empresa">
+        </div>
+        <div class="form-group">
+          <label>Tipo de Estrutura</label>
+          <select id="opTipo">
+            <option>Truck</option><option>Tenda</option><option>Trailer</option>
+            <option>Carrinho</option><option>Pit Smoker</option><option>Balcão</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Produto / Serviço</label>
+        <input type="text" id="opProduto" placeholder="Ex: Hambúrguer, Lanches">
+      </div>
+      <div class="form-group">
+        <label>Segmentos que atua</label>
+        <div class="check-group" id="opSegmentos"></div>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="opStatus">
+          <option>Contratado</option><option>Prospect</option><option>Confirmado</option><option>Cancelado</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>POC (Responsável)</label>
+          <input type="text" id="opPoc">
+        </div>
+        <div class="form-group">
+          <label>Telefone</label>
+          <input type="text" id="opTel">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Instagram</label>
+          <input type="text" id="opInsta" placeholder="@perfil">
+        </div>
+        <div class="form-group">
+          <label>Cidades de Atuação</label>
+          <input type="text" id="opCidades" placeholder="SP, POA, CWB...">
+        </div>
+      </div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Carga (kW)</label>
+          <input type="text" id="opCarga">
+        </div>
+        <div class="form-group">
+          <label>Voltagem</label>
+          <input type="text" id="opVolt" placeholder="220v">
+        </div>
+        <div class="form-group">
+          <label>Dimensões</label>
+          <input type="text" id="opDim" placeholder="4x2x2,5">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Observações</label>
+        <textarea id="opObs"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('mOperador')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarOperador()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL SEGMENTO ===== -->
+<div class="modal-overlay" id="mSegmento">
+  <div class="modal" style="width:420px">
+    <div class="modal-header">
+      <span class="modal-title" id="mSegTitle">Novo Segmento</span>
+      <button class="modal-close" onclick="closeModal('mSegmento')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nome do Segmento *</label>
+        <input type="text" id="segNome" placeholder="Ex: Bar de Vinhos, Coquetelaria">
+      </div>
+      <div class="form-group">
+        <label>Emoji / Ícone</label>
+        <input type="text" id="segIcone" placeholder="🍷" maxlength="4">
+      </div>
+      <div class="form-group">
+        <label>Cor de destaque</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap" id="segCores"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('mSegmento')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarSegmento()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL CLIENTE ===== -->
+<div class="modal-overlay" id="mCliente">
+  <div class="modal" style="width:420px">
+    <div class="modal-header">
+      <span class="modal-title" id="mClienteTitle">Novo Cliente</span>
+      <button class="modal-close" onclick="closeModal('mCliente')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>Nome *</label><input type="text" id="clNome" placeholder="Ex: Fever"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Contato</label><input type="text" id="clContato"></div>
+        <div class="form-group"><label>Telefone</label><input type="text" id="clTel"></div>
+      </div>
+      <div class="form-group"><label>Email</label><input type="text" id="clEmail"></div>
+      <div class="form-group"><label>Observações</label><textarea id="clObs"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('mCliente')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarCliente()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL ESCALA DIA ===== -->
+<div class="modal-overlay" id="mEscalaDia">
+  <div class="modal" style="width:580px">
+    <div class="modal-header">
+      <span class="modal-title" id="mEscalaDiaTitle">Operadores do Dia</span>
+      <button class="modal-close" onclick="closeModal('mEscalaDia')">✕</button>
+    </div>
+    <div class="modal-body" id="mEscalaDiaBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('mEscalaDia')">Fechar</button>
+      <button class="btn btn-gold" onclick="salvarEscalaDia()">Salvar Escala</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// =============================================
+// CONSTANTS
+// =============================================
+const DIAS_SEMANA = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const MESES_CURTO = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const SEG_CORES = ['#C9A84C','#4CAF7C','#5290E0','#E05252','#E0A252','#A07AF0','#E07AF0','#52D4E0'];
+const STATUS_BADGE = { Contratado:'badge-green', Prospect:'badge-amber', Confirmado:'badge-blue', Cancelado:'badge-red' };
+
+// =============================================
+// DATABASE
+// =============================================
+function initDB() {
+  const saved = localStorage.getItem('holy_v2');
+  if (saved) {
+    try { return JSON.parse(saved); } catch(e) {}
+  }
+  return getDefaultDB();
+}
+
+function persist() {
+  localStorage.setItem('holy_v2', JSON.stringify(DB));
+}
+
+function getDefaultDB() {
+  const segmentos = [
+    { id:'seg1', nome:'Alimentos', icone:'🍔', cor:'#E0A252' },
+    { id:'seg2', nome:'Bebidas', icone:'🍷', cor:'#5290E0' },
+    { id:'seg3', nome:'Sobremesa', icone:'🍰', cor:'#A07AF0' },
+    { id:'seg4', nome:'Snacks', icone:'🍿', cor:'#4CAF7C' },
+    { id:'seg5', nome:'Holy (próprio)', icone:'✦', cor:'#C9A84C' },
+  ];
+
+  const clientes = [
+    { id:'cl1', nome:'Fever', contato:'', tel:'', email:'', obs:'Organizadora de eventos culturais e gastronômicos' },
+  ];
+
+  const operadores = [
+    { id:1, nome:'Holy Drinks', produto:'Soft Drinks, Drinks, Espumantes, Vinhos, Limonada Italiana', poc:'Claudio Ferraz', tel:'11 949828444', insta:'', tipo:'Tenda', segmentos:['seg5','seg2'], status:'Contratado', cidades:'São Paulo, Porto Alegre, Curitiba', carga:'', volt:'', dim:'', obs:'Operação própria da Holy' },
+    { id:2, nome:'Porto do BBQ', produto:'American BBQ', poc:'Leandro', tel:'11 97173-7438', insta:'@portodobbq', tipo:'Pit Smoker', segmentos:['seg1'], status:'Contratado', cidades:'São Paulo, Curitiba, Porto Alegre', carga:'Iluminação', volt:'', dim:'5x6 total', obs:'' },
+    { id:3, nome:'Yaki Fry', produto:'Japonesa, Poke, Yakssoba', poc:'Eduardo Tamashiro', tel:'11 94718-6322', insta:'@yakifryfoodtruck', tipo:'Truck', segmentos:['seg1'], status:'Contratado', cidades:'São Paulo, Porto Alegre, Curitiba', carga:'12', volt:'', dim:'', obs:'Indicação Leandro' },
+    { id:4, nome:'Asato Foods', produto:'Pastel, Crepe no Palito', poc:'Bitcho', tel:'11 99653-0434', insta:'@asatofoods', tipo:'Trailer', segmentos:['seg1','seg4'], status:'Contratado', cidades:'São Paulo, Curitiba', carga:'8', volt:'', dim:'', obs:'Indicação Leandro' },
+    { id:5, nome:'Casa Bashyo', produto:'Frango Keraguê', poc:'Jonathan', tel:'11 95700-2602', insta:'@casabashiyo', tipo:'Tenda', segmentos:['seg1'], status:'Contratado', cidades:'São Paulo', carga:'1.5', volt:'220v', dim:'', obs:'Indicação Leandro' },
+    { id:6, nome:'Meu Baiano', produto:'Nordestina', poc:'Mário', tel:'11 99622-6215', insta:'@meubaianoacaraje', tipo:'Trailer', segmentos:['seg1'], status:'Contratado', cidades:'São Paulo', carga:'7', volt:'220v', dim:'4,5x2x2,6', obs:'' },
+    { id:7, nome:'OZ Tacos', produto:'Mexicana', poc:'Wellington', tel:'11 98534-3359', insta:'@oztacos', tipo:'Truck', segmentos:['seg1'], status:'Contratado', cidades:'São Paulo', carga:'3', volt:'', dim:'', obs:'Trifásico' },
+    { id:8, nome:'Truck da Roça', produto:'Lanches Regionais', poc:'Dante', tel:'14 99613-5455', insta:'@truckdaroca', tipo:'Truck', segmentos:['seg1'], status:'Contratado', cidades:'São Paulo', carga:'12', volt:'', dim:'', obs:'' },
+    { id:9, nome:'Rota 66', produto:'Boteco, Hambúrguer, Lanches', poc:'Letícia', tel:'11 94770-1682', insta:'@rota66lanches', tipo:'Truck', segmentos:['seg1'], status:'Contratado', cidades:'São Paulo', carga:'8', volt:'22v', dim:'', obs:'' },
+    { id:10, nome:'Box das Frutas', produto:'Açaí, Wrap, Tortas', poc:'Guilherme', tel:'11 96435-7390', insta:'@boxdafruta', tipo:'Tenda', segmentos:['seg3'], status:'Contratado', cidades:'São Paulo', carga:'8', volt:'220v', dim:'', obs:'Indicação Leandro' },
+    { id:11, nome:'Melo Pipocas', produto:'Pipocas', poc:'Lucas', tel:'11 95830-3263', insta:'', tipo:'Carrinho', segmentos:['seg4'], status:'Contratado', cidades:'São Paulo, Curitiba, Porto Alegre', carga:'6', volt:'', dim:'', obs:'' },
+    { id:12, nome:'Vulcano', produto:'Milkshake', poc:'Rodrigo', tel:'11 99614-2005', insta:'@vulcanoshake', tipo:'Truck', segmentos:['seg3'], status:'Contratado', cidades:'São Paulo', carga:'6', volt:'220v', dim:'4,54x2,80x1,78', obs:'' },
+    { id:13, nome:'Cleto Batatas', produto:'Batata Frita', poc:'Claudia', tel:'11 99641-4000', insta:'@cletobatata', tipo:'Truck', segmentos:['seg4'], status:'Contratado', cidades:'São Paulo', carga:'', volt:'', dim:'', obs:'' },
+    { id:14, nome:'Mestre Kuka Burguer', produto:'Hambúrguer', poc:'Kuka', tel:'11 99995-8355', insta:'@mestre_kuka_burguer', tipo:'Truck', segmentos:['seg1'], status:'Contratado', cidades:'São Paulo', carga:'', volt:'', dim:'', obs:'' },
+    { id:15, nome:'Açaí Fruta Brasileira', produto:'Gelatos', poc:'Fábio', tel:'11 99957-0395', insta:'@acaifrutabrasileiraoficial', tipo:'Tenda', segmentos:['seg3'], status:'Contratado', cidades:'São Paulo', carga:'', volt:'', dim:'', obs:'' },
+    { id:16, nome:'Pripoca', produto:'Pipocas Gourmet', poc:'Priscila', tel:'11 91481-3738', insta:'@pripocaoficial', tipo:'Carrinho', segmentos:['seg4'], status:'Contratado', cidades:'São Paulo', carga:'', volt:'', dim:'', obs:'' },
+    { id:17, nome:'Be Mellow', produto:'Brigaderia', poc:'Humberto', tel:'11 97975-9824', insta:'@bemellow_', tipo:'Carrinho', segmentos:['seg3'], status:'Contratado', cidades:'São Paulo', carga:'', volt:'', dim:'', obs:'' },
+    { id:18, nome:'Valhalla Chopp & Beer', produto:'Chopp', poc:'Álvaro', tel:'11 98805-9943', insta:'@valhallachopp', tipo:'Truck', segmentos:['seg2'], status:'Contratado', cidades:'São Paulo, Curitiba', carga:'', volt:'', dim:'', obs:'' },
+    { id:19, nome:'Churras do Batata', produto:'Espetinhos', poc:'Batata', tel:'51 983322929', insta:'@churrasdobatatars', tipo:'Truck', segmentos:['seg1'], status:'Contratado', cidades:'Porto Alegre', carga:'', volt:'', dim:'', obs:'' },
+    { id:20, nome:'Tribbu do Açaí', produto:'Açaí, Milkshake, Crepe Suíço, Sorvete', poc:'Márcia', tel:'51 99402-7190', insta:'@tribbudoacai', tipo:'Truck', segmentos:['seg3'], status:'Contratado', cidades:'Porto Alegre', carga:'', volt:'', dim:'', obs:'' },
+    { id:21, nome:'Clube do Assador', produto:'Lanches Uruguaios', poc:'Giuliano/Danielle', tel:'51 98948-3711', insta:'@clubedoassador', tipo:'Truck', segmentos:['seg1'], status:'Contratado', cidades:'Porto Alegre', carga:'', volt:'', dim:'', obs:'' },
+    { id:22, nome:'T&R', produto:'Espetinhos', poc:'Rúbia', tel:'41 99511-8452', insta:'', tipo:'Truck', segmentos:['seg1'], status:'Contratado', cidades:'Curitiba', carga:'', volt:'', dim:'', obs:'' },
+    { id:23, nome:'Lori Pizza', produto:'Pizza', poc:'Leandro Sodré', tel:'41 99635-9972', insta:'', tipo:'Truck', segmentos:['seg1'], status:'Contratado', cidades:'Curitiba', carga:'', volt:'', dim:'', obs:'' },
+    { id:24, nome:'Santo Bubble Waffle', produto:'Bubble, Açaí', poc:'Eliu Santos', tel:'41 99983-4895', insta:'', tipo:'Truck', segmentos:['seg3'], status:'Contratado', cidades:'Curitiba', carga:'', volt:'', dim:'', obs:'' },
+    { id:25, nome:'Vitória Churros', produto:'Churros', poc:'', tel:'41 98791-1836', insta:'', tipo:'Truck', segmentos:['seg3'], status:'Contratado', cidades:'Curitiba', carga:'', volt:'', dim:'', obs:'' },
+  ];
+
+  // Eventos
+  const eventos = [
+    {
+      id: 'ev1',
+      nome: 'Drone Art Show',
+      apelido: 'DAS',
+      clienteId: 'cl1',
+      inicio: '2025-03-01',
+      fim: '2025-04-30',
+      dias: [5, 6, 0], // Sex, Sáb, Dom
+      cidades: ['São Paulo', 'Porto Alegre', 'Curitiba'],
+      obs: 'Evento encerrado — dados históricos',
+      segmentosConfig: [
+        { segId:'seg1', vagas:10 },
+        { segId:'seg2', vagas:3 },
+        { segId:'seg3', vagas:3 },
+        { segId:'seg4', vagas:3 },
+        { segId:'seg5', vagas:1 },
+      ],
+      escala: {}
+    },
+    {
+      id: 'ev2',
+      nome: 'Brilha Sonhos',
+      apelido: 'BS',
+      clienteId: 'cl1',
+      inicio: '2025-05-20',
+      fim: '2025-09-27',
+      dias: [3, 4, 5, 6, 0], // Qua-Dom
+      cidades: ['São Paulo'],
+      obs: 'Datas a confirmar com cliente. Line-up em definição.',
+      segmentosConfig: [
+        { segId:'seg1', vagas:3 },
+        { segId:'seg2', vagas:3, obs:'Wine Bar, Coquetelaria e Chopp' },
+        { segId:'seg3', vagas:2 },
+        { segId:'seg4', vagas:2 },
+      ],
+      escala: {}
+    }
+  ];
+
+  return { segmentos, clientes, operadores, eventos };
+}
+
+let DB = initDB();
+let _editEventoId = null, _editOpId = null, _editSegId = null, _editClienteId = null;
+let _escalaDay = null, _escalaEvId = null, _escalaCid = null;
+let _evCidades = [];
+let _segColorSel = SEG_CORES[0];
+
+// =============================================
+// NAVIGATION
+// =============================================
+const PAGE_TITLES = { dashboard:'Dashboard', eventos:'Eventos', escala:'Escalas', operadores:'Operadores', segmentos:'Segmentos', clientes:'Clientes' };
+
+function nav(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelector(`.nav-item[onclick="nav('${page}')"]`).classList.add('active');
+  document.getElementById('pageTitle').textContent = PAGE_TITLES[page] || page;
+  const ta = document.getElementById('topbarActions');
+  ta.innerHTML = '';
+  if (page === 'eventos') {
+    ta.innerHTML = `<button class="btn btn-gold" onclick="openModalEvento()">+ Novo Evento</button>`;
+    renderEventos();
+  } else if (page === 'operadores') {
+    ta.innerHTML = `<button class="btn btn-gold" onclick="openModalOperador()">+ Novo Operador</button>`;
+    renderOpFilters(); renderOperadores();
+  } else if (page === 'dashboard') {
+    renderDashboard();
+  } else if (page === 'escala') {
+    buildEscalaSelects();
+  } else if (page === 'segmentos') {
+    renderSegmentosPage();
+  } else if (page === 'clientes') {
+    renderClientesPage();
+  }
+  if (window.innerWidth < 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+// =============================================
+// DASHBOARD
+// =============================================
+function renderDashboard() {
+  const total = DB.operadores.length;
+  const contrat = DB.operadores.filter(o => o.status === 'Contratado').length;
+  const prosp = DB.operadores.filter(o => o.status === 'Prospect').length;
+
+  document.getElementById('dashStats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Operadores</div><div class="stat-value">${total}</div><div class="stat-sub">no banco</div></div>
+    <div class="stat-card"><div class="stat-label">Contratados</div><div class="stat-value">${contrat}</div><div class="stat-sub">confirmados</div></div>
+    <div class="stat-card"><div class="stat-label">Prospects</div><div class="stat-value">${prosp}</div><div class="stat-sub">em negociação</div></div>
+    <div class="stat-card"><div class="stat-label">Eventos</div><div class="stat-value">${DB.eventos.length}</div><div class="stat-sub">cadastrados</div></div>
+  `;
+
+  // Eventos list
+  document.getElementById('dashEventos').innerHTML = DB.eventos.map(ev => {
+    const cliente = DB.clientes.find(c => c.id === ev.clienteId);
+    const pct = getEscalaProgresso(ev);
+    return `<div style="padding:12px;background:var(--dark3);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer" onclick="nav('escala')">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <strong style="font-size:14px">${ev.nome}</strong>
+        ${ev.apelido ? `<span class="badge badge-gold" style="font-size:10px">${ev.apelido}</span>` : ''}
+      </div>
+      ${cliente ? `<div style="font-size:11px;color:var(--gold);margin-bottom:6px">${cliente.nome}</div>` : ''}
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">${fmtDate(ev.inicio)} → ${fmtDate(ev.fim)} · ${ev.cidades.join(', ')}</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div style="font-size:10px;color:var(--text-muted);margin-top:4px">${pct}% da escala preenchida</div>
+    </div>`;
+  }).join('') || '<div class="empty-state"><div class="empty-icon">◉</div><p>Nenhum evento</p></div>';
+
+  // Segmentos
+  document.getElementById('dashSegmentos').innerHTML = DB.segmentos.map(seg => {
+    const count = DB.operadores.filter(o => o.segmentos && o.segmentos.includes(seg.id)).length;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+      <span style="font-size:18px">${seg.icone}</span>
+      <span style="flex:1;font-size:13px;font-weight:500">${seg.nome}</span>
+      <span style="font-size:20px;font-weight:700;color:${seg.cor};font-family:'Playfair Display',serif">${count}</span>
+    </div>`;
+  }).join('');
+}
+
+function getEscalaProgresso(ev) {
+  if (!ev.inicio || !ev.fim) return 0;
+  const start = new Date(ev.inicio+'T00:00:00'), end = new Date(ev.fim+'T00:00:00');
+  let total = 0, filled = 0;
+  let d = new Date(start);
+  while (d <= end) {
+    if (ev.dias.includes(d.getDay())) {
+      total++;
+      const dk = d.toISOString().split('T')[0];
+      ev.cidades.forEach(cid => {
+        const ops = (ev.escala[cid] || {})[dk] || [];
+        if (ops.length > 0) filled++;
+      });
+    }
+    d.setDate(d.getDate()+1);
+  }
+  if (!total) return 0;
+  return Math.round((filled / (total * ev.cidades.length)) * 100);
+}
+
+// =============================================
+// EVENTOS
+// =============================================
+function renderEventos() {
+  const g = document.getElementById('eventsGrid');
+  if (!DB.eventos.length) {
+    g.innerHTML = `<div class="empty-state"><div class="empty-icon">◉</div><h3>Nenhum evento</h3></div>`;
+    return;
+  }
+  g.innerHTML = DB.eventos.map(ev => {
+    const cliente = DB.clientes.find(c => c.id === ev.clienteId);
+    const diasLabel = ev.dias.map(d => DIAS_SEMANA[d]).join(', ');
+    const segCount = (ev.segmentosConfig || []).length;
+    const totalVagas = (ev.segmentosConfig || []).reduce((a,s) => a+(s.vagas||0), 0);
+    return `<div class="event-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px">
+        <div class="event-name">${ev.nome}</div>
+        <div style="display:flex;gap:6px">
+          ${ev.apelido ? `<span class="badge badge-gold" style="font-size:10px">${ev.apelido}</span>` : ''}
+          <button class="btn btn-outline btn-sm" onclick="editEvento('${ev.id}')">Editar</button>
+        </div>
+      </div>
+      ${cliente ? `<div class="event-client">📋 ${cliente.nome}</div>` : ''}
+      <div class="event-meta">
+        <span>📅 ${fmtDate(ev.inicio)} → ${fmtDate(ev.fim)}</span>
+        <span>📍 ${ev.cidades.join(', ')}</span>
+        <span>🗓 ${diasLabel}</span>
+      </div>
+      <div style="margin-bottom:14px;display:flex;flex-wrap:wrap;gap:4px">
+        ${(ev.segmentosConfig||[]).map(sc => {
+          const seg = DB.segmentos.find(s => s.id === sc.segId);
+          if (!seg) return '';
+          return `<span style="background:rgba(0,0,0,0.3);border:1px solid ${seg.cor}40;color:${seg.cor};padding:2px 8px;border-radius:4px;font-size:11px">${seg.icone} ${seg.nome} · ${sc.vagas}v</span>`;
+        }).join('')}
+      </div>
+      <div class="event-stats">
+        <div class="event-stat"><div class="event-stat-val">${segCount}</div><div class="event-stat-label">Segmentos</div></div>
+        <div class="event-stat"><div class="event-stat-val">${totalVagas}</div><div class="event-stat-label">Vagas</div></div>
+        <div class="event-stat"><div class="event-stat-val">${ev.cidades.length}</div><div class="event-stat-label">Cidades</div></div>
+      </div>
+      ${ev.obs ? `<div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.05);font-size:12px;color:var(--text-muted)">${ev.obs}</div>` : ''}
+      <div style="margin-top:14px;display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="verEscalaEvento('${ev.id}')">Ver Escala →</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function verEscalaEvento(id) {
+  nav('escala');
+  setTimeout(() => {
+    document.getElementById('escalaEvSel').value = id;
+    onEscalaEventoChange();
+  }, 80);
+}
+
+function openModalEvento() {
+  _editEventoId = null;
+  _evCidades = [];
+  document.getElementById('mEventoTitle').textContent = 'Novo Evento';
+  document.getElementById('evNome').value = '';
+  document.getElementById('evInicio').value = '';
+  document.getElementById('evFim').value = '';
+  document.getElementById('evObs').value = '';
+  buildClienteSelect('evCliente', null);
+  buildDiasCheck('evDias', []);
+  renderEvCidades();
+  buildEvSegmentos({});
+  document.getElementById('mEvento').classList.add('open');
+}
+
+function editEvento(id) {
+  const ev = DB.eventos.find(e => e.id === id);
+  if (!ev) return;
+  _editEventoId = id;
+  _evCidades = [...ev.cidades];
+  document.getElementById('mEventoTitle').textContent = 'Editar Evento';
+  document.getElementById('evNome').value = ev.nome;
+  document.getElementById('evInicio').value = ev.inicio || '';
+  document.getElementById('evFim').value = ev.fim || '';
+  document.getElementById('evObs').value = ev.obs || '';
+  buildClienteSelect('evCliente', ev.clienteId);
+  buildDiasCheck('evDias', ev.dias || []);
+  renderEvCidades();
+  const segMap = {};
+  (ev.segmentosConfig||[]).forEach(sc => { segMap[sc.segId] = sc; });
+  buildEvSegmentos(segMap);
+  document.getElementById('mEvento').classList.add('open');
+}
+
+function buildClienteSelect(elId, selectedId) {
+  const el = document.getElementById(elId);
+  el.innerHTML = `<option value="">— Selecionar cliente —</option>` +
+    DB.clientes.map(c => `<option value="${c.id}" ${c.id===selectedId?'selected':''}>${c.nome}</option>`).join('');
+}
+
+function buildDiasCheck(elId, selected) {
+  document.getElementById(elId).innerHTML = DIAS_SEMANA.map((d,i) => {
+    const checked = selected.includes(i);
+    return `<label class="check-pill ${checked?'checked':''}" onclick="toggleCheckPill(this,${i},'dia')">
+      <input type="hidden" data-type="dia" data-val="${i}"> ${d}
+    </label>`;
+  }).join('');
+}
+
+function toggleCheckPill(el, val, type) {
+  el.classList.toggle('checked');
+}
+
+function addCidadeEvento() {
+  const input = document.getElementById('evCidadeInput');
+  const v = input.value.trim();
+  if (!v || _evCidades.includes(v)) { input.value = ''; return; }
+  _evCidades.push(v);
+  input.value = '';
+  renderEvCidades();
+}
+
+function renderEvCidades() {
+  document.getElementById('evCidadesList').innerHTML = _evCidades.map((c,i) =>
+    `<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.25);border-radius:6px;font-size:12px;color:var(--gold)">
+      ${c} <button onclick="_evCidades.splice(${i},1);renderEvCidades()" style="background:none;border:none;color:var(--gold);cursor:pointer;padding:0;font-size:13px">×</button>
+    </span>`
+  ).join('');
+}
+
+function buildEvSegmentos(segMap) {
+  document.getElementById('evSegmentos').innerHTML = DB.segmentos.map(seg => {
+    const sc = segMap[seg.id] || {};
+    const checked = !!sc.segId || false;
+    const vagas = sc.vagas || 0;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--dark3);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-sm);margin-bottom:6px">
+      <input type="checkbox" id="evSeg_${seg.id}" ${checked||vagas?'checked':''} style="width:auto;accent-color:var(--gold);flex-shrink:0">
+      <span style="font-size:16px">${seg.icone}</span>
+      <span style="flex:1;font-size:13px;font-weight:600;color:${seg.cor}">${seg.nome}</span>
+      <label style="font-size:12px;color:var(--text-muted);text-transform:none;letter-spacing:0;margin:0">Vagas:</label>
+      <input type="number" id="evSegVagas_${seg.id}" value="${vagas||0}" min="0" max="99" style="width:60px;text-align:center;padding:5px 8px">
+    </div>`;
+  }).join('');
+}
+
+function salvarEvento() {
+  const nome = document.getElementById('evNome').value.trim();
+  if (!nome) { showToast('Informe o nome do evento'); return; }
+  const dias = [...document.querySelectorAll('#evDias .check-pill.checked')].map(el => parseInt(el.querySelector('input').dataset.val));
+  const segConfig = DB.segmentos
+    .filter(seg => document.getElementById('evSeg_'+seg.id)?.checked)
+    .map(seg => ({
+      segId: seg.id,
+      vagas: parseInt(document.getElementById('evSegVagas_'+seg.id)?.value) || 0
+    }));
+
+  const data = {
+    nome,
+    clienteId: document.getElementById('evCliente').value || null,
+    inicio: document.getElementById('evInicio').value,
+    fim: document.getElementById('evFim').value,
+    dias,
+    cidades: [..._evCidades],
+    obs: document.getElementById('evObs').value,
+    segmentosConfig: segConfig,
+  };
+
+  if (_editEventoId) {
+    const ev = DB.eventos.find(e => e.id === _editEventoId);
+    Object.assign(ev, data);
+  } else {
+    data.id = 'ev' + Date.now();
+    data.escala = {};
+    DB.eventos.push(data);
+  }
+  persist();
+  closeModal('mEvento');
+  renderEventos();
+  showToast('Evento salvo!');
+}
+
+// =============================================
+// ESCALA
+// =============================================
+function buildEscalaSelects() {
+  const evSel = document.getElementById('escalaEvSel');
+  evSel.innerHTML = DB.eventos.map(ev => `<option value="${ev.id}">${ev.nome}${ev.apelido?' ('+ev.apelido+')':''}</option>`).join('');
+  onEscalaEventoChange();
+}
+
+function onEscalaEventoChange() {
+  const evId = document.getElementById('escalaEvSel').value;
+  const ev = DB.eventos.find(e => e.id === evId);
+  const cidSel = document.getElementById('escalaCidSel');
+  if (!ev) { cidSel.innerHTML = ''; renderEscala(); return; }
+  cidSel.innerHTML = ev.cidades.map(c => `<option value="${c}">${c}</option>`).join('');
+  renderEscala();
+}
+
+function renderEscala() {
+  const evId = document.getElementById('escalaEvSel').value;
+  const cidade = document.getElementById('escalaCidSel').value;
+  const ev = DB.eventos.find(e => e.id === evId);
+  const el = document.getElementById('escalaContent');
+  if (!ev || !ev.inicio || !ev.fim) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">◫</div><h3>Selecione um evento com datas definidas</h3></div>`;
+    return;
+  }
+
+  const start = new Date(ev.inicio+'T00:00:00'), end = new Date(ev.fim+'T00:00:00');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const cidEscala = (ev.escala[cidade] || {});
+
+  // Group event days by month
+  const byMonth = {};
+  let d = new Date(start);
+  while (d <= end) {
+    if (ev.dias.includes(d.getDay())) {
+      const mk = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+      if (!byMonth[mk]) byMonth[mk] = [];
+      byMonth[mk].push(new Date(d));
+    }
+    d.setDate(d.getDate()+1);
+  }
+
+  if (!Object.keys(byMonth).length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">◫</div><h3>Nenhum dia de operação</h3><p>Verifique os dias da semana no evento</p></div>`;
+    return;
+  }
+
+  let html = '';
+  Object.entries(byMonth).forEach(([mk, days]) => {
+    const [y,m] = mk.split('-');
+    html += `<div class="cal-month-header"><span class="cal-month-title">${MESES[parseInt(m)-1]} ${y}</span><span style="font-size:12px;color:var(--text-muted)">${days.length} dia(s)</span></div>`;
+    html += `<div class="day-grid">`;
+    days.forEach(day => {
+      const dk = day.toISOString().split('T')[0];
+      const isToday = day.getTime() === today.getTime();
+      const isPast = day < today;
+      const opIds = cidEscala[dk] || [];
+      const ops = opIds.map(id => DB.operadores.find(o => o.id === id)).filter(Boolean);
+
+      html += `<div class="day-card ${isToday?'today':''} ${isPast?'past':''}">
+        <div class="day-card-header">
+          <div><div class="day-name">${DIAS_SEMANA[day.getDay()]}</div><div class="day-num">${day.getDate()}</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="openEscalaDia('${dk}','${evId}','${cidade}')" style="font-size:11px;padding:3px 8px">+ Ops</button>
+        </div>
+        <div class="day-ops">
+          ${ops.length ? ops.map(op => {
+            const seg = op.segmentos && op.segmentos.length ? DB.segmentos.find(s => s.id === op.segmentos[0]) : null;
+            const cor = seg ? seg.cor : '#888';
+            return `<div class="op-chip" style="border-left-color:${cor}" onclick="openEscalaDia('${dk}','${evId}','${cidade}')">
+              <div class="op-chip-name">${op.nome}</div>
+              <div class="op-chip-seg">${seg ? seg.icone+' '+seg.nome : ''}</div>
+            </div>`;
+          }).join('') : `<div class="day-empty">vazio</div>`}
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+
+  el.innerHTML = html;
+}
+
+function openEscalaDia(dateKey, evId, cidade) {
+  _escalaDay = dateKey; _escalaEvId = evId; _escalaCid = cidade;
+  const ev = DB.eventos.find(e => e.id === evId);
+  const day = new Date(dateKey+'T00:00:00');
+  document.getElementById('mEscalaDiaTitle').textContent =
+    `${DIAS_SEMANA[day.getDay()]}, ${day.getDate()} ${MESES_CURTO[day.getMonth()]} · ${cidade}`;
+
+  const currentOps = ((ev.escala[cidade] || {})[dateKey] || []);
+  const opsDisponiveis = DB.operadores.filter(op => !op.cidades || op.cidades.split(',').some(c => c.trim() === cidade) || !op.cidades.trim());
+
+  const segConfig = ev.segmentosConfig || [];
+  let html = '';
+
+  // Group by segments configured for this event
+  segConfig.forEach(sc => {
+    const seg = DB.segmentos.find(s => s.id === sc.segId);
+    if (!seg) return;
+    const opsNoSeg = opsDisponiveis.filter(op => op.segmentos && op.segmentos.includes(sc.segId));
+    if (!opsNoSeg.length) return;
+    html += `<div style="margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:${seg.cor};text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">${seg.icone} ${seg.nome} · ${sc.vagas} vaga(s)</div>`;
+    opsNoSeg.forEach(op => {
+      const checked = currentOps.includes(op.id);
+      html += `<label style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:${checked?'rgba(201,168,76,0.06)':'var(--dark3)'};border:1px solid ${checked?'rgba(201,168,76,0.2)':'rgba(255,255,255,0.05)'};border-radius:8px;cursor:pointer;margin-bottom:4px;font-size:13px;font-weight:normal;text-transform:none;letter-spacing:0;color:var(--text)">
+        <input type="checkbox" name="escOp" value="${op.id}" ${checked?'checked':''} style="width:auto;accent-color:var(--gold);flex-shrink:0">
+        <div style="flex:1">
+          <div style="font-weight:600">${op.nome}</div>
+          <div style="font-size:11px;color:var(--text-muted)">${op.produto}</div>
+        </div>
+        <span class="badge ${STATUS_BADGE[op.status]||'badge-blue'}" style="font-size:10px">${op.status}</span>
+      </label>`;
+    });
+    html += '</div>';
+  });
+
+  if (!html) html = '<p style="color:var(--text-muted);text-align:center;padding:24px">Nenhum operador disponível para esta cidade</p>';
+  document.getElementById('mEscalaDiaBody').innerHTML = html;
+  document.getElementById('mEscalaDia').classList.add('open');
+}
+
+function salvarEscalaDia() {
+  const ev = DB.eventos.find(e => e.id === _escalaEvId);
+  if (!ev.escala) ev.escala = {};
+  if (!ev.escala[_escalaCid]) ev.escala[_escalaCid] = {};
+  ev.escala[_escalaCid][_escalaDay] = [...document.querySelectorAll('input[name="escOp"]:checked')].map(c => parseInt(c.value));
+  persist();
+  closeModal('mEscalaDia');
+  renderEscala();
+  showToast('Escala salva!');
+}
+
+// =============================================
+// OPERADORES
+// =============================================
+let _opFilter = 'todos';
+function renderOpFilters() {
+  const filters = [{ k:'todos', l:'Todos' }, ...DB.segmentos.map(s => ({ k:s.id, l:s.icone+' '+s.nome }))];
+  document.getElementById('opFilters').innerHTML = filters.map(f =>
+    `<button class="filter-btn ${_opFilter===f.k?'active':''}" onclick="_opFilter='${f.k}';renderOpFilters();renderOperadores()">${f.l}</button>`
+  ).join('');
+}
+
+function renderOperadores() {
+  const q = (document.getElementById('opSearch')?.value||'').toLowerCase();
+  let ops = DB.operadores;
+  if (_opFilter !== 'todos') ops = ops.filter(o => o.segmentos && o.segmentos.includes(_opFilter));
+  if (q) ops = ops.filter(o =>
+    o.nome.toLowerCase().includes(q) || (o.produto||'').toLowerCase().includes(q) ||
+    (o.poc||'').toLowerCase().includes(q) || (o.cidades||'').toLowerCase().includes(q)
+  );
+  document.getElementById('opCount').textContent = `${ops.length} resultado(s)`;
+  if (!ops.length) {
+    document.getElementById('opTable').innerHTML = `<tr><td colspan="8"><div class="empty-state" style="padding:32px"><div class="empty-icon" style="font-size:28px">◎</div><p>Nenhum resultado</p></div></td></tr>`;
+    return;
+  }
+  document.getElementById('opTable').innerHTML = ops.map(op => {
+    const segs = (op.segmentos||[]).map(sid => {
+      const seg = DB.segmentos.find(s => s.id === sid);
+      return seg ? `<span style="padding:2px 7px;background:rgba(0,0,0,0.3);border:1px solid ${seg.cor}50;color:${seg.cor};border-radius:4px;font-size:11px">${seg.icone} ${seg.nome}</span>` : '';
+    }).join(' ');
+    return `<tr>
+      <td><div style="font-weight:600">${op.nome}</div>${op.insta?`<div style="font-size:11px;color:var(--text-muted)">${op.insta}</div>`:''}</td>
+      <td style="max-width:160px;font-size:12px;color:var(--text-muted)">${op.produto||'—'}</td>
+      <td>${segs||'—'}</td>
+      <td><span class="tag">${op.tipo||'—'}</span></td>
+      <td><div>${op.poc||'—'}</div><div style="font-size:11px;color:var(--text-muted)">${op.tel||''}</div></td>
+      <td>${(op.cidades||'').split(',').map(c=>`<span class="city-tag">${c.trim()}</span>`).join('')||'—'}</td>
+      <td><span class="badge ${STATUS_BADGE[op.status]||'badge-blue'}">${op.status}</span></td>
+      <td><div class="actions-cell"><button class="btn btn-outline btn-sm" onclick="editOperador(${op.id})">Editar</button><button class="btn btn-danger btn-sm" onclick="delOperador(${op.id})">✕</button></div></td>
+    </tr>`;
+  }).join('');
+}
+
+function openModalOperador() {
+  _editOpId = null;
+  document.getElementById('mOpTitle').textContent = 'Novo Operador';
+  ['opNome','opProduto','opPoc','opTel','opInsta','opCidades','opCarga','opVolt','opDim','opObs'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('opTipo').value = 'Truck';
+  document.getElementById('opStatus').value = 'Contratado';
+  buildOpSegmentos([]);
+  document.getElementById('mOperador').classList.add('open');
+}
+
+function editOperador(id) {
+  const op = DB.operadores.find(o => o.id === id);
+  if (!op) return;
+  _editOpId = id;
+  document.getElementById('mOpTitle').textContent = 'Editar Operador';
+  document.getElementById('opNome').value = op.nome||'';
+  document.getElementById('opProduto').value = op.produto||'';
+  document.getElementById('opPoc').value = op.poc||'';
+  document.getElementById('opTel').value = op.tel||'';
+  document.getElementById('opInsta').value = op.insta||'';
+  document.getElementById('opCidades').value = op.cidades||'';
+  document.getElementById('opCarga').value = op.carga||'';
+  document.getElementById('opVolt').value = op.volt||'';
+  document.getElementById('opDim').value = op.dim||'';
+  document.getElementById('opObs').value = op.obs||'';
+  document.getElementById('opTipo').value = op.tipo||'Truck';
+  document.getElementById('opStatus').value = op.status||'Contratado';
+  buildOpSegmentos(op.segmentos||[]);
+  document.getElementById('mOperador').classList.add('open');
+}
+
+function buildOpSegmentos(selected) {
+  document.getElementById('opSegmentos').innerHTML = DB.segmentos.map(seg => {
+    const checked = selected.includes(seg.id);
+    return `<label class="check-pill ${checked?'checked':''}" onclick="this.classList.toggle('checked')" style="border-color:${checked?seg.cor:''};color:${checked?seg.cor:''}">
+      <input type="hidden" data-segid="${seg.id}"> ${seg.icone} ${seg.nome}
+    </label>`;
+  }).join('');
+}
+
+function salvarOperador() {
+  const nome = document.getElementById('opNome').value.trim();
+  if (!nome) { showToast('Informe o nome'); return; }
+  const segs = [...document.querySelectorAll('#opSegmentos .check-pill.checked input')].map(i => i.dataset.segid);
+  const data = {
+    nome, produto:document.getElementById('opProduto').value,
+    poc:document.getElementById('opPoc').value, tel:document.getElementById('opTel').value,
+    insta:document.getElementById('opInsta').value, cidades:document.getElementById('opCidades').value,
+    carga:document.getElementById('opCarga').value, volt:document.getElementById('opVolt').value,
+    dim:document.getElementById('opDim').value, obs:document.getElementById('opObs').value,
+    tipo:document.getElementById('opTipo').value, status:document.getElementById('opStatus').value,
+    segmentos: segs
+  };
+  if (_editOpId) {
+    const idx = DB.operadores.findIndex(o => o.id === _editOpId);
+    DB.operadores[idx] = { ...DB.operadores[idx], ...data };
+  } else {
+    data.id = Date.now();
+    DB.operadores.push(data);
+  }
+  persist();
+  closeModal('mOperador');
+  renderOperadores();
+  showToast('Operador salvo!');
+}
+
+function delOperador(id) {
+  if (!confirm('Remover este operador?')) return;
+  DB.operadores = DB.operadores.filter(o => o.id !== id);
+  persist();
+  renderOperadores();
+  showToast('Removido');
+}
+
+// =============================================
+// SEGMENTOS
+// =============================================
+function renderSegmentosPage() {
+  document.getElementById('segmentosGrid').innerHTML = DB.segmentos.map(seg => {
+    const count = DB.operadores.filter(o => o.segmentos && o.segmentos.includes(seg.id)).length;
+    return `<div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--dark3);border:1px solid ${seg.cor}30;border-radius:var(--radius-sm);margin-bottom:8px">
+      <div style="width:36px;height:36px;border-radius:8px;background:${seg.cor}20;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${seg.icone}</div>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:14px;color:${seg.cor}">${seg.nome}</div>
+        <div style="font-size:12px;color:var(--text-muted)">${count} operador(es) neste segmento</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-outline btn-sm" onclick="editSegmento('${seg.id}')">Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="delSegmento('${seg.id}')">✕</button>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty-state"><div class="empty-icon">◧</div><p>Nenhum segmento</p></div>';
+}
+
+function openModalSegmento() {
+  _editSegId = null;
+  document.getElementById('mSegTitle').textContent = 'Novo Segmento';
+  document.getElementById('segNome').value = '';
+  document.getElementById('segIcone').value = '';
+  _segColorSel = SEG_CORES[0];
+  buildSegCores();
+  document.getElementById('mSegmento').classList.add('open');
+}
+
+function editSegmento(id) {
+  const seg = DB.segmentos.find(s => s.id === id);
+  if (!seg) return;
+  _editSegId = id;
+  document.getElementById('mSegTitle').textContent = 'Editar Segmento';
+  document.getElementById('segNome').value = seg.nome;
+  document.getElementById('segIcone').value = seg.icone;
+  _segColorSel = seg.cor;
+  buildSegCores();
+  document.getElementById('mSegmento').classList.add('open');
+}
+
+function buildSegCores() {
+  document.getElementById('segCores').innerHTML = SEG_CORES.map(c =>
+    `<div onclick="_segColorSel='${c}';buildSegCores()" style="width:28px;height:28px;border-radius:50%;background:${c};cursor:pointer;border:3px solid ${c===_segColorSel?'white':'transparent'};transition:border 0.15s"></div>`
+  ).join('');
+}
+
+function salvarSegmento() {
+  const nome = document.getElementById('segNome').value.trim();
+  if (!nome) { showToast('Informe o nome'); return; }
+  const data = { nome, icone: document.getElementById('segIcone').value || '●', cor: _segColorSel };
+  if (_editSegId) {
+    const seg = DB.segmentos.find(s => s.id === _editSegId);
+    Object.assign(seg, data);
+  } else {
+    data.id = 'seg' + Date.now();
+    DB.segmentos.push(data);
+  }
+  persist();
+  closeModal('mSegmento');
+  renderSegmentosPage();
+  showToast('Segmento salvo!');
+}
+
+function delSegmento(id) {
+  if (!confirm('Remover este segmento?')) return;
+  DB.segmentos = DB.segmentos.filter(s => s.id !== id);
+  persist();
+  renderSegmentosPage();
+  showToast('Segmento removido');
+}
+
+// =============================================
+// CLIENTES
+// =============================================
+function renderClientesPage() {
+  document.getElementById('clientesTable').innerHTML = DB.clientes.map(cl => {
+    const evCount = DB.eventos.filter(e => e.clienteId === cl.id).length;
+    return `<tr>
+      <td><div style="font-weight:600">${cl.nome}</div><div style="font-size:11px;color:var(--text-muted)">${evCount} evento(s)</div></td>
+      <td>${cl.contato||'—'}</td>
+      <td><div>${cl.email||'—'}</div><div style="font-size:11px;color:var(--text-muted)">${cl.tel||''}</div></td>
+      <td style="font-size:12px;color:var(--text-muted);max-width:200px">${cl.obs||'—'}</td>
+      <td><div class="actions-cell"><button class="btn btn-outline btn-sm" onclick="editCliente('${cl.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="delCliente('${cl.id}')">✕</button></div></td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">◑</div><p>Nenhum cliente</p></div></td></tr>`;
+}
+
+function openModalCliente() {
+  _editClienteId = null;
+  document.getElementById('mClienteTitle').textContent = 'Novo Cliente';
+  ['clNome','clContato','clTel','clEmail','clObs'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('mCliente').classList.add('open');
+}
+
+function editCliente(id) {
+  const cl = DB.clientes.find(c => c.id === id);
+  if (!cl) return;
+  _editClienteId = id;
+  document.getElementById('mClienteTitle').textContent = 'Editar Cliente';
+  document.getElementById('clNome').value = cl.nome||'';
+  document.getElementById('clContato').value = cl.contato||'';
+  document.getElementById('clTel').value = cl.tel||'';
+  document.getElementById('clEmail').value = cl.email||'';
+  document.getElementById('clObs').value = cl.obs||'';
+  document.getElementById('mCliente').classList.add('open');
+}
+
+function salvarCliente() {
+  const nome = document.getElementById('clNome').value.trim();
+  if (!nome) { showToast('Informe o nome do cliente'); return; }
+  const data = { nome, contato:document.getElementById('clContato').value, tel:document.getElementById('clTel').value, email:document.getElementById('clEmail').value, obs:document.getElementById('clObs').value };
+  if (_editClienteId) {
+    const cl = DB.clientes.find(c => c.id === _editClienteId);
+    Object.assign(cl, data);
+  } else {
+    data.id = 'cl' + Date.now();
+    DB.clientes.push(data);
+  }
+  persist();
+  closeModal('mCliente');
+  renderClientesPage();
+  showToast('Cliente salvo!');
+}
+
+function delCliente(id) {
+  if (!confirm('Remover este cliente?')) return;
+  DB.clientes = DB.clientes.filter(c => c.id !== id);
+  persist();
+  renderClientesPage();
+  showToast('Cliente removido');
+}
+
+// =============================================
+// HELPERS
+// =============================================
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function fmtDate(s) {
+  if (!s) return '—';
+  const [y,m,d] = s.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+// Init
+renderDashboard();
+</script>
+</body>
+</html>
