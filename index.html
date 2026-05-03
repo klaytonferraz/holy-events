@@ -6,13 +6,13 @@
 <title>Holy Events</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-:root {
+:root{
   --gold:#C9A84C;--gold-light:#E8C97A;--gold-dark:#8B6914;
   --black:#0A0A0A;--dark:#111111;--dark2:#1A1A1A;--dark3:#242424;
   --surface:#2A2A2A;--surface2:#333333;
   --text:#F0EDE8;--text-muted:#9A9A8A;
   --green:#4CAF7C;--red:#E05252;--amber:#E0A252;--blue:#5290E0;--purple:#A07AF0;
-  --warn:#F59E0B;--alert:#EF4444;--info:#3B82F6;
+  --warn:#F59E0B;--alert:#EF4444;
   --radius:12px;--radius-sm:8px;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -23,11 +23,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--black);color:var(--text);
 .login-box{background:var(--dark2);border:1px solid rgba(201,168,76,0.25);border-radius:var(--radius);padding:48px;width:380px;max-width:95vw;text-align:center;}
 .login-logo{font-family:'Playfair Display',serif;font-size:36px;font-weight:900;color:var(--gold);margin-bottom:4px;}
 .login-sub{font-size:12px;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:36px;}
-.login-box input{margin-bottom:12px;}
 .login-err{color:var(--red);font-size:13px;margin-top:8px;min-height:20px;}
 
 /* SIDEBAR */
-.sidebar{position:fixed;left:0;top:0;bottom:0;width:240px;background:var(--dark);border-right:1px solid rgba(201,168,76,0.15);display:flex;flex-direction:column;z-index:100;transition:transform 0.3s ease;overflow-y:auto;}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:240px;background:var(--dark);border-right:1px solid rgba(201,168,76,0.15);display:flex;flex-direction:column;z-index:100;transition:transform 0.3s;overflow-y:auto;}
 .sidebar-logo{padding:24px 24px 16px;border-bottom:1px solid rgba(201,168,76,0.1);}
 .logo-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:var(--gold);}
 .logo-sub{font-size:10px;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
@@ -89,13 +88,14 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .badge-amber{background:rgba(224,162,82,0.15);color:var(--amber);border:1px solid rgba(224,162,82,0.3);}
 .badge-blue{background:rgba(82,144,224,0.15);color:var(--blue);border:1px solid rgba(82,144,224,0.3);}
 .badge-gold{background:rgba(201,168,76,0.15);color:var(--gold);border:1px solid rgba(201,168,76,0.3);}
+.badge-gray{background:rgba(155,155,155,0.15);color:#999;border:1px solid rgba(155,155,155,0.3);}
 .tag{display:inline-block;background:var(--surface);color:var(--text-muted);padding:2px 7px;border-radius:4px;font-size:11px;margin:1px;}
 .city-tag{display:inline-block;padding:2px 7px;background:rgba(201,168,76,0.1);color:var(--gold-light);border-radius:4px;font-size:11px;margin:1px;}
 
 /* FORMS */
 .form-group{margin-bottom:16px;}
 label{display:block;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
-input[type=text],input[type=date],input[type=number],input[type=password],input[type=email],select,textarea{width:100%;background:var(--dark3);border:1px solid rgba(255,255,255,0.1);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color 0.2s;}
+input[type=text],input[type=date],input[type=time],input[type=number],input[type=password],select,textarea{width:100%;background:var(--dark3);border:1px solid rgba(255,255,255,0.1);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color 0.2s;}
 input:focus,select:focus,textarea:focus{border-color:var(--gold);}
 select option{background:var(--dark2);}
 textarea{resize:vertical;min-height:70px;}
@@ -110,15 +110,14 @@ textarea{resize:vertical;min-height:70px;}
 .check-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border:1px solid rgba(255,255,255,0.1);border-radius:6px;font-size:12px;color:var(--text-muted);cursor:pointer;transition:all 0.15s;user-select:none;}
 .check-pill input{display:none;}
 .check-pill.checked{background:rgba(201,168,76,0.12);border-color:var(--gold);color:var(--gold);}
-.check-pill:hover:not(.checked){border-color:rgba(255,255,255,0.2);color:var(--text);}
 
 /* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;}
 .modal-overlay.open{display:flex;}
-.modal{background:var(--dark2);border:1px solid rgba(201,168,76,0.2);border-radius:var(--radius);width:560px;max-width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.6);}
+.modal{background:var(--dark2);border:1px solid rgba(201,168,76,0.2);border-radius:var(--radius);width:580px;max-width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.6);}
 .modal-header{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--dark2);z-index:1;}
 .modal-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;}
-.modal-close{background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;padding:4px;border-radius:4px;transition:color 0.2s;}
+.modal-close{background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;padding:4px;border-radius:4px;}
 .modal-close:hover{color:var(--text);}
 .modal-body{padding:20px 24px;}
 .modal-footer{padding:14px 24px;border-top:1px solid rgba(255,255,255,0.06);display:flex;gap:8px;justify-content:flex-end;}
@@ -128,28 +127,40 @@ textarea{resize:vertical;min-height:70px;}
 .event-card{background:var(--dark2);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius);padding:18px;transition:all 0.2s;position:relative;overflow:hidden;}
 .event-card:hover{border-color:rgba(201,168,76,0.3);transform:translateY(-1px);}
 .event-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),transparent);}
+.event-card.archived{opacity:0.55;filter:grayscale(0.3);}
+.event-card.archived::after{background:linear-gradient(90deg,#666,transparent);}
 .event-name{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:3px;}
 .event-client{font-size:11px;color:var(--gold);margin-bottom:5px;}
 .event-meta{font-size:11px;color:var(--text-muted);margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;}
 .event-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);}
 .ev-stat-val{font-size:18px;font-weight:700;color:var(--gold);font-family:'Playfair Display',serif;text-align:center;}
 .ev-stat-lbl{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;text-align:center;}
+.archived-section{margin-top:32px;}
+.archived-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;cursor:pointer;user-select:none;}
+.archived-divider{flex:1;height:1px;background:rgba(255,255,255,0.06);}
+.archived-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.5px;font-weight:600;white-space:nowrap;}
 
-/* DASHBOARD - UPCOMING SCHEDULE */
-.upcoming-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:20px;}
-.upcoming-day{background:var(--dark2);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-sm);overflow:hidden;position:relative;}
+/* STATUS BADGES */
+.status-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
+.status-ativo{background:rgba(76,175,124,0.15);color:var(--green);}
+.status-concluido{background:rgba(155,155,155,0.15);color:#888;}
+.status-cancelado{background:rgba(224,82,82,0.15);color:var(--red);}
+.status-adiado{background:rgba(245,158,11,0.15);color:var(--warn);}
+.status-excluido{background:rgba(224,82,82,0.1);color:#c77;}
+
+/* DASHBOARD */
+.upcoming-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;}
+.upcoming-day{background:var(--dark2);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-sm);overflow:hidden;}
 .upcoming-day.today{border-color:var(--gold);}
-.upcoming-day-header{background:var(--dark3);padding:8px 10px;display:flex;justify-content:space-between;align-items:center;}
-.upcoming-day-name{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);}
-.upcoming-day-date{font-size:15px;font-weight:700;}
-.upcoming-day.today .upcoming-day-name,.upcoming-day.today .upcoming-day-date{color:var(--gold);}
+.upcoming-day-header{background:var(--dark3);padding:8px 10px;display:flex;justify-content:space-between;align-items:flex-start;}
 .upcoming-day-body{padding:8px;}
 .upcoming-op{font-size:11px;padding:3px 6px;border-radius:4px;margin-bottom:2px;background:var(--surface);border-left:3px solid var(--text-muted);}
+.ev-label-tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600;margin-bottom:4px;}
 
 /* ESCALA */
 .cal-month-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--gold);margin:18px 0 10px;}
 .day-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:8px;margin-bottom:16px;}
-.day-card{background:var(--dark2);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-sm);overflow:hidden;position:relative;}
+.day-card{background:var(--dark2);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-sm);overflow:hidden;}
 .day-card.today{border-color:var(--gold);}
 .day-card.past{opacity:0.55;}
 .day-card-header{background:var(--dark3);padding:7px 10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.06);}
@@ -160,12 +171,17 @@ textarea{resize:vertical;min-height:70px;}
 .op-chip-name{font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .op-chip-seg{color:var(--text-muted);font-size:10px;}
 .day-empty-txt{font-size:10px;color:var(--text-muted);text-align:center;padding:10px 0;opacity:0.4;}
-.add-btn{display:block;width:100%;background:none;border:none;color:var(--text-muted);font-size:11px;padding:3px;cursor:pointer;text-align:center;}
-.add-btn:hover{color:var(--gold);}
 
-/* ALERT ICONS */
+/* CALENDAR VIEW (read-only) */
+.cal-view-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-bottom:14px;}
+.cal-view-day{background:var(--dark2);border:1px solid rgba(255,255,255,0.05);border-radius:var(--radius-sm);padding:8px 10px;cursor:default;}
+.cal-view-day.today{border-color:var(--gold);}
+.cal-view-day.past{opacity:0.45;}
+.cal-view-ev{font-size:10px;padding:2px 5px;border-radius:3px;margin-top:3px;font-weight:600;}
+
+/* ALERT ICON TOOLTIP */
 .alert-icon{cursor:default;font-size:13px;position:relative;}
-.alert-icon[title]:hover::after{content:attr(title);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--dark);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:6px 10px;font-size:11px;color:var(--text);white-space:nowrap;z-index:100;max-width:220px;white-space:normal;text-align:center;pointer-events:none;}
+.alert-icon[title]:hover::after{content:attr(title);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--dark);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:6px 10px;font-size:11px;color:var(--text);white-space:normal;z-index:100;min-width:160px;max-width:220px;text-align:center;pointer-events:none;}
 
 /* FILTER BAR */
 .filter-bar{display:flex;gap:5px;flex-wrap:wrap;}
@@ -174,7 +190,7 @@ textarea{resize:vertical;min-height:70px;}
 
 /* PROGRESS */
 .progress-bar{height:5px;background:var(--dark3);border-radius:3px;overflow:hidden;}
-.progress-fill{height:100%;background:var(--gold);border-radius:3px;transition:width 0.4s;}
+.progress-fill{height:100%;background:var(--gold);border-radius:3px;}
 
 /* TOAST */
 .toast{position:fixed;bottom:20px;right:20px;background:var(--dark2);border:1px solid rgba(201,168,76,0.3);border-radius:var(--radius-sm);padding:10px 18px;font-size:13px;color:var(--gold);z-index:999;transform:translateY(80px);opacity:0;transition:all 0.3s;}
@@ -183,8 +199,12 @@ textarea{resize:vertical;min-height:70px;}
 /* POPUP */
 .popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(6px);z-index:300;display:none;align-items:center;justify-content:center;padding:16px;}
 .popup-overlay.open{display:flex;}
-.popup-box{background:var(--dark2);border:1px solid rgba(239,68,68,0.35);border-radius:var(--radius);width:500px;max-width:100%;padding:28px;box-shadow:0 24px 80px rgba(0,0,0,0.7);}
+.popup-box{background:var(--dark2);border:1px solid rgba(239,68,68,0.35);border-radius:var(--radius);width:500px;max-width:100%;padding:28px;}
 .popup-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--alert);margin-bottom:8px;}
+
+/* CONFIRM BOX */
+.confirm-box{background:var(--dark2);border:1px solid rgba(201,168,76,0.2);border-radius:var(--radius);width:440px;max-width:100%;padding:28px;}
+.confirm-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:8px;}
 
 /* SETTINGS */
 .settings-section{background:var(--dark2);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius);padding:20px;margin-bottom:16px;}
@@ -197,33 +217,34 @@ textarea{resize:vertical;min-height:70px;}
 .toggle input{opacity:0;width:0;height:0;}
 .toggle-slider{position:absolute;inset:0;background:var(--surface2);border-radius:11px;cursor:pointer;transition:0.3s;}
 .toggle-slider::before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:white;border-radius:50%;transition:0.3s;}
-.toggle input:checked + .toggle-slider{background:var(--gold);}
-.toggle input:checked + .toggle-slider::before{transform:translateX(18px);}
+.toggle input:checked+.toggle-slider{background:var(--gold);}
+.toggle input:checked+.toggle-slider::before{transform:translateX(18px);}
 
-/* CLIENTS PAGE */
-.client-card{background:var(--dark2);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius);padding:18px;margin-bottom:12px;transition:border-color 0.2s;}
-.client-card:hover{border-color:rgba(201,168,76,0.2);}
-.client-name{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:4px;}
-.client-events{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);}
-.client-event-link{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.15);border-radius:6px;font-size:12px;color:var(--gold);cursor:pointer;margin:3px;transition:background 0.15s;}
+/* CLIENT */
+.client-card{background:var(--dark2);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius);padding:18px;margin-bottom:12px;}
+.client-event-link{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.15);border-radius:6px;font-size:12px;color:var(--gold);cursor:pointer;margin:3px;}
 .client-event-link:hover{background:rgba(201,168,76,0.15);}
 
-/* WARN ACKNOWLEDGE */
+/* ACK BOX */
 .ack-box{background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:var(--radius-sm);padding:14px;margin-top:14px;}
 .ack-label{display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:var(--text-muted);font-weight:normal;text-transform:none;letter-spacing:0;}
 .ack-label input{width:auto;background:transparent;border:none;padding:0;accent-color:var(--warn);margin-top:2px;flex-shrink:0;}
-
-/* HAMBURGER */
-.hamburger{display:none;background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;}
 
 /* SECTION DIV */
 .section-div{display:flex;align-items:center;gap:8px;margin:16px 0 12px;color:var(--text-muted);font-size:10px;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;}
 .section-div::before,.section-div::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.06);}
 
 .actions-cell{display:flex;gap:5px;flex-wrap:wrap;}
+.hamburger{display:none;background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;}
 ::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--surface);border-radius:3px;}
+
+/* HORARIO TABLE */
+.horario-table{width:100%;border-collapse:collapse;font-size:13px;}
+.horario-table th{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);padding:6px 10px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.06);}
+.horario-table td{padding:5px 10px;border-bottom:1px solid rgba(255,255,255,0.03);}
+.horario-table tr:last-child td{border-bottom:none;}
 
 @media(max-width:768px){
   .sidebar{transform:translateX(-100%);}
@@ -244,14 +265,8 @@ textarea{resize:vertical;min-height:70px;}
   <div class="login-box">
     <div class="login-logo">Holy</div>
     <div class="login-sub">Events Manager</div>
-    <div class="form-group">
-      <label>Usuário</label>
-      <input type="text" id="loginUser" placeholder="seu usuário" onkeydown="if(event.key==='Enter')doLogin()">
-    </div>
-    <div class="form-group">
-      <label>Senha</label>
-      <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
-    </div>
+    <div class="form-group"><label>Usuário</label><input type="text" id="loginUser" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="form-group"><label>Senha</label><input type="password" id="loginPass" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="btn btn-gold" style="width:100%;justify-content:center;margin-top:4px" onclick="doLogin()">Entrar</button>
     <div class="login-err" id="loginErr"></div>
   </div>
@@ -259,15 +274,13 @@ textarea{resize:vertical;min-height:70px;}
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <div class="logo-title">Holy</div>
-    <div class="logo-sub">Events Manager</div>
-  </div>
+  <div class="sidebar-logo"><div class="logo-title">Holy</div><div class="logo-sub">Events Manager</div></div>
   <nav class="nav-section">
     <div class="nav-label">Principal</div>
     <button class="nav-item active" onclick="nav('dashboard')"><span class="icon">◈</span> Dashboard</button>
     <button class="nav-item" onclick="nav('eventos')"><span class="icon">◉</span> Eventos</button>
     <button class="nav-item" onclick="nav('escala')"><span class="icon">◫</span> Escalas</button>
+    <button class="nav-item" onclick="nav('calendario')"><span class="icon">📅</span> Calendário</button>
   </nav>
   <div class="divider"></div>
   <nav class="nav-section">
@@ -281,9 +294,7 @@ textarea{resize:vertical;min-height:70px;}
     <div class="nav-label">Sistema</div>
     <button class="nav-item" onclick="nav('configuracoes')"><span class="icon">⚙</span> Configurações</button>
   </nav>
-  <div class="sidebar-footer">
-    <button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center" onclick="doLogout()">Sair</button>
-  </div>
+  <div class="sidebar-footer"><button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center" onclick="doLogout()">Sair</button></div>
 </aside>
 
 <!-- MAIN -->
@@ -303,27 +314,27 @@ textarea{resize:vertical;min-height:70px;}
       <div class="card">
         <div class="card-header">
           <span class="card-title">📅 Próximos Dias de Operação</span>
-          <select id="dashEvFilter" onchange="renderDashboard()" style="width:auto;min-width:160px">
-            <option value="all">Todos os eventos</option>
-          </select>
+          <select id="dashEvFilter" onchange="renderDashboard()" style="width:auto;min-width:160px"><option value="all">Todos os eventos</option></select>
         </div>
         <div style="padding:16px" id="dashUpcoming"></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-        <div class="card">
-          <div class="card-header"><span class="card-title">Eventos</span></div>
-          <div style="padding:14px" id="dashEventList"></div>
-        </div>
-        <div class="card">
-          <div class="card-header"><span class="card-title">Operadores por Segmento</span></div>
-          <div style="padding:14px" id="dashSegList"></div>
-        </div>
+        <div class="card"><div class="card-header"><span class="card-title">Eventos Ativos</span></div><div style="padding:14px" id="dashEventList"></div></div>
+        <div class="card"><div class="card-header"><span class="card-title">Por Segmento</span></div><div style="padding:14px" id="dashSegList"></div></div>
       </div>
     </div>
 
     <!-- EVENTOS -->
     <div class="page" id="page-eventos">
-      <div class="events-grid" id="eventsGrid"></div>
+      <div class="events-grid" id="eventsGridActive"></div>
+      <div class="archived-section" id="archivedSection">
+        <div class="archived-header" onclick="toggleArchived()">
+          <span class="archived-label">Arquivados</span>
+          <div class="archived-divider"></div>
+          <span id="archivedToggleIcon" style="color:var(--text-muted);font-size:12px">▼ mostrar</span>
+        </div>
+        <div id="eventsGridArchived" style="display:none"></div>
+      </div>
     </div>
 
     <!-- ESCALA -->
@@ -336,6 +347,21 @@ textarea{resize:vertical;min-height:70px;}
       <div id="escalaContent"></div>
     </div>
 
+    <!-- CALENDÁRIO (read-only) -->
+    <div class="page" id="page-calendario">
+      <div style="margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <select id="calEvFilter" onchange="buildCalEvFilter();renderCalendario()" style="width:auto;min-width:180px"></select>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          <button class="filter-btn cal-filter-btn active" data-f="all" onclick="setCalAlertFilter('all')">Todos os dias</button>
+          <button class="filter-btn cal-filter-btn" data-f="warn_or_alert" onclick="setCalAlertFilter('warn_or_alert')">⚠️🔴 Aviso ou Alarme</button>
+          <button class="filter-btn cal-filter-btn" data-f="warn" onclick="setCalAlertFilter('warn')">⚠️ Só Aviso</button>
+          <button class="filter-btn cal-filter-btn" data-f="alert" onclick="setCalAlertFilter('alert')">🔴 Só Alarme</button>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:14px">📖 Somente visualização — para editar escalas acesse a tela Escalas</div>
+      <div id="calendarioContent"></div>
+    </div>
+
     <!-- OPERADORES -->
     <div class="page" id="page-operadores">
       <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
@@ -344,13 +370,13 @@ textarea{resize:vertical;min-height:70px;}
       </div>
       <div class="card">
         <div class="card-header"><span class="card-title">Banco de Operadores</span><span id="opCount" style="font-size:12px;color:var(--text-muted)"></span></div>
-        <div style="overflow-x:auto"><table><thead><tr><th>Empresa</th><th>Produto</th><th>Segmentos</th><th>Tipo</th><th>POC / Tel</th><th>Cidade(s)</th><th>Status</th><th>Ações</th></tr></thead><tbody id="opTable"></tbody></table></div>
+        <div style="overflow-x:auto"><table><thead><tr><th>Empresa</th><th>Produto</th><th>Segmentos</th><th>Tipo</th><th>POC/Tel</th><th>Cidade(s)</th><th>Status</th><th>Ações</th></tr></thead><tbody id="opTable"></tbody></table></div>
       </div>
     </div>
 
     <!-- SEGMENTOS -->
     <div class="page" id="page-segmentos">
-      <div class="card"><div class="card-header"><span class="card-title">Segmentos de Operação</span><button class="btn btn-gold btn-sm" onclick="openModalSeg()">+ Novo</button></div><div style="padding:14px" id="segGrid"></div></div>
+      <div class="card"><div class="card-header"><span class="card-title">Segmentos</span><button class="btn btn-gold btn-sm" onclick="openModalSeg()">+ Novo</button></div><div style="padding:14px" id="segGrid"></div></div>
     </div>
 
     <!-- CLIENTES -->
@@ -361,69 +387,110 @@ textarea{resize:vertical;min-height:70px;}
     <!-- CONFIGURAÇÕES -->
     <div class="page" id="page-configuracoes">
       <div class="settings-section">
-        <div class="settings-title">🔐 Usuários e Acesso</div>
+        <div class="settings-title">🔐 Usuários</div>
         <div id="usersConfig"></div>
         <button class="btn btn-outline btn-sm" style="margin-top:12px" onclick="openAddUser()">+ Adicionar Usuário</button>
       </div>
       <div class="settings-section">
-        <div class="settings-title">⚠️ Alertas e Notificações</div>
+        <div class="settings-title">⚠️ Alertas</div>
         <div class="settings-row">
-          <div><div class="settings-label">Dias de antecedência para alerta vermelho</div><div class="settings-desc">Dias antes do evento para ativar alerta crítico de escala incompleta</div></div>
+          <div><div class="settings-label">Dias de antecedência para alerta vermelho</div><div class="settings-desc">Dias antes do evento para alerta crítico</div></div>
           <input type="number" id="cfgAlertDays" min="1" max="30" style="width:70px" onchange="saveCfg()">
         </div>
         <div class="settings-row">
-          <div><div class="settings-label">Popup de alertas ao abrir Escalas</div><div class="settings-desc">Exibir resumo de dias críticos ao acessar a tela de escalas</div></div>
+          <div><div class="settings-label">Popup de alertas ao abrir Escalas</div><div class="settings-desc">Resumo de dias críticos</div></div>
           <label class="toggle"><input type="checkbox" id="cfgPopup" onchange="saveCfg()"><span class="toggle-slider"></span></label>
         </div>
       </div>
       <div class="settings-section">
         <div class="settings-title">🎨 Preferências</div>
         <div class="settings-row">
-          <div><div class="settings-label">Pré-selecionar Holy Drinks em bebidas</div><div class="settings-desc">Ao montar escala, marcar Holy Drinks automaticamente nas vagas de bebidas</div></div>
+          <div><div class="settings-label">Pré-selecionar Holy Drinks em bebidas</div><div class="settings-desc">Marcar Holy Drinks automaticamente nas vagas de bebidas</div></div>
           <label class="toggle"><input type="checkbox" id="cfgAutoHoly" onchange="saveCfg()"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">Dias para exclusão definitiva (lixeira)</div><div class="settings-desc">Eventos excluídos ficam na lixeira por este período</div></div>
+          <input type="number" id="cfgTrashDays" min="7" max="90" style="width:70px" onchange="saveCfg()">
         </div>
       </div>
       <div class="settings-section">
         <div class="settings-title">📱 Notificações Externas</div>
-        <div style="background:rgba(82,144,224,0.08);border:1px solid rgba(82,144,224,0.2);border-radius:var(--radius-sm);padding:14px;font-size:13px;color:var(--text-muted)">
-          🔧 <strong style="color:var(--blue)">Em desenvolvimento</strong> — Notificações via WhatsApp, e-mail e SMS serão implementadas em uma versão futura que requerirá um servidor backend. Quando disponível, você poderá configurar os destinatários e gatilhos aqui.
-        </div>
+        <div style="background:rgba(82,144,224,0.08);border:1px solid rgba(82,144,224,0.2);border-radius:var(--radius-sm);padding:14px;font-size:13px;color:var(--text-muted)">🔧 <strong style="color:var(--blue)">Em desenvolvimento</strong> — Notificações via WhatsApp, e-mail e SMS serão implementadas em versão futura com backend.</div>
       </div>
-      <button class="btn btn-gold" onclick="saveCfg();showToast('Configurações salvas!')">Salvar Configurações</button>
+      <button class="btn btn-gold" onclick="saveCfg();showToast('Configurações salvas!')">Salvar</button>
     </div>
-
   </div>
 </main>
 
 <div class="toast" id="toast"></div>
 
-<!-- POPUP ALERTAS ESCALA -->
+<!-- POPUP ALERTAS -->
 <div class="popup-overlay" id="popupAlerts">
   <div class="popup-box">
-    <div class="popup-title">⚠️ Atenção — Escalas Incompletas</div>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Os seguintes dias de operação estão se aproximando e ainda possuem vagas não preenchidas:</p>
+    <div class="popup-title">⚠️ Escalas Incompletas — Atenção</div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Os seguintes dias estão se aproximando com vagas não preenchidas:</p>
     <div id="popupAlertList" style="max-height:260px;overflow-y:auto;margin-bottom:20px"></div>
-    <button class="btn btn-gold" style="width:100%;justify-content:center" onclick="closePopup('popupAlerts')">Entendido, vou verificar</button>
+    <button class="btn btn-gold" style="width:100%;justify-content:center" onclick="closePopup('popupAlerts')">Entendido</button>
+  </div>
+</div>
+
+<!-- POPUP CONFIRM GENÉRICO -->
+<div class="popup-overlay" id="popupConfirm">
+  <div class="confirm-box">
+    <div class="confirm-title" id="confirmTitle">Confirmar</div>
+    <p id="confirmMsg" style="font-size:13px;color:var(--text-muted);margin-bottom:20px"></p>
+    <div id="confirmExtra"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-outline" onclick="closePopup('popupConfirm')">Cancelar</button>
+      <button class="btn btn-danger" id="confirmOkBtn">Confirmar</button>
+    </div>
   </div>
 </div>
 
 <!-- MODAL EVENTO -->
 <div class="modal-overlay" id="mEvento">
-  <div class="modal" style="width:620px">
+  <div class="modal" style="width:660px">
     <div class="modal-header"><span class="modal-title" id="mEventoTitle">Novo Evento</span><button class="modal-close" onclick="closeModal('mEvento')">✕</button></div>
     <div class="modal-body">
       <div class="form-row">
         <div class="form-group"><label>Nome *</label><input type="text" id="evNome" placeholder="Ex: Brilha Sonhos"></div>
         <div class="form-group"><label>Apelido/Sigla</label><input type="text" id="evApelido" placeholder="Ex: BS"></div>
       </div>
-      <div class="form-group"><label>Cliente</label><select id="evCliente"><option value="">— Sem cliente —</option></select></div>
       <div class="form-row">
-        <div class="form-group"><label>Data Início</label><input type="date" id="evInicio"></div>
+        <div class="form-group"><label>Cliente *</label><select id="evCliente"><option value="">— Selecionar cliente —</option></select></div>
+        <div class="form-group"><label>Status</label><select id="evStatus"><option value="ativo">Ativo</option><option value="adiado">Adiado sem previsão</option><option value="cancelado">Cancelado</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Data Início *</label><input type="date" id="evInicio"></div>
         <div class="form-group"><label>Data Fim</label><input type="date" id="evFim"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Horário Padrão (início)</label><input type="time" id="evHorarioInicio" placeholder="18:00"></div>
+        <div class="form-group"><label>Horário Padrão (encerramento)</label><input type="time" id="evHorarioFim" placeholder="23:00"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Expectativa de Público (por dia)</label>
+          <input type="number" id="evPublicoDia" min="0" placeholder="Ex: 500" oninput="calcPublico('dia')">
+        </div>
+        <div class="form-group">
+          <label>Expectativa Total do Evento</label>
+          <input type="number" id="evPublicoTotal" min="0" placeholder="Calculado automaticamente" oninput="calcPublico('total')">
+        </div>
       </div>
       <div class="form-group"><label>Dias de Operação</label><div class="check-group" id="evDias"></div></div>
       <div class="form-group">
-        <label>Cidades</label>
+        <label>Dias Especiais</label>
+        <div style="display:flex;gap:8px;margin-bottom:6px">
+          <input type="date" id="evDiaEspecialData" style="flex:1">
+          <select id="evDiaEspecialTipo" style="width:auto;min-width:120px"><option value="incluir">+ Incluir</option><option value="excluir">− Excluir</option></select>
+          <button class="btn btn-ghost btn-sm" onclick="addDiaEspecial()">Add</button>
+        </div>
+        <div id="evDiasEspeciaisList" class="check-group"></div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Use para adicionar dias fora do padrão (ex: feriado movido) ou remover datas específicas.</div>
+      </div>
+      <div class="form-group">
+        <label>Cidades *</label>
         <div style="display:flex;gap:6px;margin-bottom:6px"><input type="text" id="evCidInput" placeholder="Adicionar cidade..." style="flex:1" onkeydown="if(event.key==='Enter'){addEvCidade();event.preventDefault()}"><button class="btn btn-ghost btn-sm" onclick="addEvCidade()">+ Add</button></div>
         <div id="evCidList" class="check-group"></div>
       </div>
@@ -431,7 +498,13 @@ textarea{resize:vertical;min-height:70px;}
       <div id="evSegs"></div>
       <div class="form-group" style="margin-top:14px"><label>Observações</label><textarea id="evObs"></textarea></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('mEvento')">Cancelar</button><button class="btn btn-gold" onclick="salvarEvento()">Salvar</button></div>
+    <div class="modal-footer">
+      <div id="evDeleteBtn"></div>
+      <div style="display:flex;gap:8px;margin-left:auto">
+        <button class="btn btn-outline" onclick="closeModal('mEvento')">Cancelar</button>
+        <button class="btn btn-gold" onclick="salvarEvento()">Salvar</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -440,15 +513,12 @@ textarea{resize:vertical;min-height:70px;}
   <div class="modal">
     <div class="modal-header"><span class="modal-title" id="mOpTitle">Novo Operador</span><button class="modal-close" onclick="closeModal('mOperador')">✕</button></div>
     <div class="modal-body">
-      <div class="form-row">
-        <div class="form-group"><label>Empresa *</label><input type="text" id="opNome"></div>
-        <div class="form-group"><label>Tipo de Estrutura</label><select id="opTipo"><option>Truck</option><option>Tenda</option><option>Trailer</option><option>Carrinho</option><option>Pit Smoker</option><option>Balcão</option></select></div>
-      </div>
-      <div class="form-group"><label>Produto / Serviço</label><input type="text" id="opProduto"></div>
-      <div class="form-group"><label>Segmentos que atua</label><div class="check-group" id="opSegs"></div></div>
+      <div class="form-row"><div class="form-group"><label>Empresa *</label><input type="text" id="opNome"></div><div class="form-group"><label>Tipo</label><select id="opTipo"><option>Truck</option><option>Tenda</option><option>Trailer</option><option>Carrinho</option><option>Pit Smoker</option><option>Balcão</option></select></div></div>
+      <div class="form-group"><label>Produto</label><input type="text" id="opProduto"></div>
+      <div class="form-group"><label>Segmentos</label><div class="check-group" id="opSegs"></div></div>
       <div class="form-group"><label>Status</label><select id="opStatus"><option>Contratado</option><option>Prospect</option><option>Confirmado</option><option>Cancelado</option></select></div>
       <div class="form-row"><div class="form-group"><label>POC</label><input type="text" id="opPoc"></div><div class="form-group"><label>Telefone</label><input type="text" id="opTel"></div></div>
-      <div class="form-row"><div class="form-group"><label>Instagram</label><input type="text" id="opInsta" placeholder="@perfil"></div><div class="form-group"><label>Cidades</label><input type="text" id="opCids" placeholder="SP, POA..."></div></div>
+      <div class="form-row"><div class="form-group"><label>Instagram</label><input type="text" id="opInsta"></div><div class="form-group"><label>Cidades</label><input type="text" id="opCids"></div></div>
       <div class="form-row-3"><div class="form-group"><label>Carga (kW)</label><input type="text" id="opCarga"></div><div class="form-group"><label>Voltagem</label><input type="text" id="opVolt"></div><div class="form-group"><label>Dimensões</label><input type="text" id="opDim"></div></div>
       <div class="form-group"><label>Observações</label><textarea id="opObs"></textarea></div>
     </div>
@@ -463,9 +533,7 @@ textarea{resize:vertical;min-height:70px;}
     <div class="modal-body">
       <div class="form-group"><label>Nome *</label><input type="text" id="segNome"></div>
       <div class="form-row"><div class="form-group"><label>Emoji</label><input type="text" id="segIcone" maxlength="4" placeholder="🍔"></div><div class="form-group"><label>Cor</label><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px" id="segCores"></div></div></div>
-      <div class="form-group"><label>Operação própria da Holy?</label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);text-transform:none;letter-spacing:0;font-weight:normal;margin-top:6px"><input type="checkbox" id="segIsHoly" style="width:auto;background:transparent;border:none;padding:0;accent-color:var(--gold)"> Este segmento representa operação própria da Holy</label>
-      </div>
+      <div class="form-group"><label style="text-transform:none;letter-spacing:0;font-size:13px;font-weight:normal"><input type="checkbox" id="segIsHoly" style="width:auto;background:transparent;border:none;padding:0;accent-color:var(--gold);margin-right:8px"> Operação própria da Holy</label></div>
     </div>
     <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('mSeg')">Cancelar</button><button class="btn btn-gold" onclick="salvarSeg()">Salvar</button></div>
   </div>
@@ -479,10 +547,7 @@ textarea{resize:vertical;min-height:70px;}
       <div class="form-group"><label>Nome *</label><input type="text" id="clNome"></div>
       <div class="form-row"><div class="form-group"><label>Contato</label><input type="text" id="clContato"></div><div class="form-group"><label>Telefone</label><input type="text" id="clTel"></div></div>
       <div class="form-group"><label>Email</label><input type="text" id="clEmail"></div>
-      <div class="form-group">
-        <label>Vincular Eventos</label>
-        <div id="clEventosVinc" style="margin-top:6px"></div>
-      </div>
+      <div class="form-group"><label>Vincular Eventos</label><div id="clEventosVinc" style="margin-top:6px"></div></div>
       <div class="form-group"><label>Observações</label><textarea id="clObs"></textarea></div>
     </div>
     <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('mCliente')">Cancelar</button><button class="btn btn-gold" onclick="salvarCliente()">Salvar</button></div>
@@ -492,23 +557,34 @@ textarea{resize:vertical;min-height:70px;}
 <!-- MODAL ESCALA DIA -->
 <div class="modal-overlay" id="mEscDia">
   <div class="modal" style="width:580px">
-    <div class="modal-header"><span class="modal-title" id="mEscDiaTitle">Operadores do Dia</span><button class="modal-close" onclick="closeModal('mEscDia')">✕</button></div>
+    <div class="modal-header">
+      <span class="modal-title" id="mEscDiaTitle">Operadores do Dia</span>
+      <button class="modal-close" onclick="closeModal('mEscDia')">✕</button>
+    </div>
     <div class="modal-body" id="mEscDiaBody"></div>
-    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('mEscDia')">Fechar</button><button class="btn btn-gold" onclick="salvarEscDia()">Salvar Escala</button></div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" onclick="resetEscalaDia()">🗑 Zerar dia</button>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn btn-outline" onclick="closeModal('mEscDia')">Fechar</button>
+        <button class="btn btn-gold" onclick="salvarEscDia()">Salvar</button>
+      </div>
+    </div>
   </div>
 </div>
 
 <!-- MODAL COPIAR ESCALA -->
 <div class="modal-overlay" id="mCopyEsc">
-  <div class="modal" style="width:540px">
-    <div class="modal-header"><span class="modal-title">📋 Copiar Escala para Múltiplos Dias</span><button class="modal-close" onclick="closeModal('mCopyEsc')">✕</button></div>
+  <div class="modal" style="width:560px">
+    <div class="modal-header"><span class="modal-title">📋 Copiar Escala</span><button class="modal-close" onclick="closeModal('mCopyEsc')">✕</button></div>
     <div class="modal-body">
-      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Selecione um dia de origem e os dias de destino para copiar a escala.</p>
-      <div class="form-group"><label>Dia de Origem (copiar de)</label><select id="copyOrigin" style=""></select></div>
-      <div class="form-group"><label>Dias de Destino (aplicar em)</label><div id="copyDestDays" style="display:flex;flex-wrap:wrap;gap:6px;max-height:200px;overflow-y:auto;margin-top:4px"></div></div>
-      <div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="selectAllDest()">Selecionar todos</button><button class="btn btn-ghost btn-sm" onclick="clearAllDest()">Limpar</button></div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Selecione a origem e os dias de destino para aplicar a escala.</p>
+      <div class="form-group"><label>Dia de Origem</label><select id="copyOrigin" onchange="filterCopyDest()"></select></div>
+      <div class="form-group"><label>Dias de Destino</label>
+        <div style="display:flex;gap:6px;margin-bottom:8px"><button class="btn btn-ghost btn-sm" onclick="selectAllDest()">Selecionar todos</button><button class="btn btn-ghost btn-sm" onclick="clearAllDest()">Limpar</button></div>
+        <div id="copyDestDays" style="display:flex;flex-wrap:wrap;gap:5px;max-height:200px;overflow-y:auto"></div>
+      </div>
     </div>
-    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('mCopyEsc')">Cancelar</button><button class="btn btn-gold" onclick="executarCopy()">Aplicar Cópia</button></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('mCopyEsc')">Cancelar</button><button class="btn btn-gold" onclick="executarCopy()">Aplicar</button></div>
   </div>
 </div>
 
@@ -517,19 +593,28 @@ textarea{resize:vertical;min-height:70px;}
   <div class="modal" style="width:480px">
     <div class="modal-header"><span class="modal-title" id="mVagasTitle">Vagas do Dia</span><button class="modal-close" onclick="closeModal('mVagasDia')">✕</button></div>
     <div class="modal-body">
-      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Ajuste as vagas por segmento para este dia específico. Alterações que fogem do padrão do evento exigem confirmação.</p>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Ajuste vagas por segmento para este dia específico.</p>
       <div id="vagasDiaBody"></div>
       <div class="ack-box" id="vagasAckBox" style="display:none">
-        <label class="ack-label">
-          <input type="checkbox" id="vagasAck" onchange="document.getElementById('btnSalvarVagas').disabled=!this.checked">
-          Estou ciente de que o ajuste no número de operadores desta data pode impactar a qualidade e eficiência da operação, e assumo a responsabilidade por esta alteração.
-        </label>
+        <label class="ack-label"><input type="checkbox" id="vagasAck" onchange="document.getElementById('btnSalvarVagas').disabled=!this.checked"> Estou ciente de que o ajuste no número de operadores desta data pode impactar a qualidade e eficiência da operação, e assumo a responsabilidade por esta alteração.</label>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('mVagasDia')">Cancelar</button>
-      <button class="btn btn-gold" id="btnSalvarVagas" onclick="salvarVagasDia()">Salvar</button>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('mVagasDia')">Cancelar</button><button class="btn btn-gold" id="btnSalvarVagas" onclick="salvarVagasDia()">Salvar</button></div>
+  </div>
+</div>
+
+<!-- MODAL HORÁRIO DIA -->
+<div class="modal-overlay" id="mHorarioDia">
+  <div class="modal" style="width:400px">
+    <div class="modal-header"><span class="modal-title" id="mHorarioDiaTitle">Horário do Dia</span><button class="modal-close" onclick="closeModal('mHorarioDia')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Início</label><input type="time" id="horarioDiaInicio"></div>
+        <div class="form-group"><label>Encerramento</label><input type="time" id="horarioDiaFim"></div>
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:4px">Deixe em branco para usar o horário padrão do evento.</p>
     </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('mHorarioDia')">Cancelar</button><button class="btn btn-gold" onclick="salvarHorarioDia()">Salvar</button></div>
   </div>
 </div>
 
@@ -549,104 +634,135 @@ textarea{resize:vertical;min-height:70px;}
 // =============================================
 // CONSTANTS
 // =============================================
-const DIAS_SEMANA = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-const MESES_C = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-const SEG_CORES = ['#C9A84C','#4CAF7C','#5290E0','#E05252','#E0A252','#A07AF0','#E07AF0','#52D4E0','#F97316'];
-const STATUS_BADGE = {Contratado:'badge-green',Prospect:'badge-amber',Confirmado:'badge-blue',Cancelado:'badge-red'};
+const DIAS_SEMANA=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const MESES_C=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const SEG_CORES=['#C9A84C','#4CAF7C','#5290E0','#E05252','#E0A252','#A07AF0','#E07AF0','#52D4E0','#F97316'];
+const STATUS_BADGE={Contratado:'badge-green',Prospect:'badge-amber',Confirmado:'badge-blue',Cancelado:'badge-red'};
+const EV_STATUS_CSS={ativo:'status-ativo',concluido:'status-concluido',cancelado:'status-cancelado',adiado:'status-adiado',excluido:'status-excluido'};
+const EV_STATUS_LABEL={ativo:'Ativo',concluido:'Concluído',cancelado:'Cancelado',adiado:'Adiado',excluido:'Excluído'};
 
 // =============================================
 // DATABASE
 // =============================================
-function loadDB() {
-  const s = localStorage.getItem('holy_v3');
-  if (s) try { return JSON.parse(s); } catch(e) {}
-  return defaultDB();
-}
-function persist() { localStorage.setItem('holy_v3', JSON.stringify(DB)); }
+function loadDB(){const s=localStorage.getItem('holy_v4');if(s)try{return JSON.parse(s);}catch(e){}return defaultDB();}
+function persist(){localStorage.setItem('holy_v4',JSON.stringify(DB));}
 
-function defaultDB() {
-  return {
-    users: [
-      { user:'klayton', pass:'holy2025', name:'Klayton' },
-      { user:'claudio', pass:'holy2025', name:'Cláudio' }
+function defaultDB(){
+  return{
+    users:[{user:'klayton',pass:'holy2025',name:'Klayton'},{user:'claudio',pass:'holy2025',name:'Cláudio'}],
+    config:{alertDays:7,popup:true,autoHoly:true,trashDays:30},
+    segmentos:[
+      {id:'seg1',nome:'Alimentos',icone:'🍔',cor:'#E0A252',isHoly:false},
+      {id:'seg2',nome:'Bebidas',icone:'🍷',cor:'#5290E0',isHoly:false},
+      {id:'seg3',nome:'Sobremesa',icone:'🍰',cor:'#A07AF0',isHoly:false},
+      {id:'seg4',nome:'Snacks',icone:'🍿',cor:'#4CAF7C',isHoly:false},
+      {id:'seg5',nome:'Operação Própria',icone:'✦',cor:'#C9A84C',isHoly:true},
     ],
-    config: { alertDays:7, popup:true, autoHoly:true },
-    segmentos: [
-      { id:'seg1', nome:'Alimentos', icone:'🍔', cor:'#E0A252', isHoly:false },
-      { id:'seg2', nome:'Bebidas', icone:'🍷', cor:'#5290E0', isHoly:false },
-      { id:'seg3', nome:'Sobremesa', icone:'🍰', cor:'#A07AF0', isHoly:false },
-      { id:'seg4', nome:'Snacks', icone:'🍿', cor:'#4CAF7C', isHoly:false },
-      { id:'seg5', nome:'Operação Própria', icone:'✦', cor:'#C9A84C', isHoly:true },
-    ],
-    clientes: [
-      { id:'cl1', nome:'Fever', contato:'', tel:'', email:'', obs:'Organizadora de eventos culturais e gastronômicos' }
-    ],
-    operadores: defaultOperadores(),
-    eventos: defaultEventos()
+    clientes:[{id:'cl1',nome:'Fever',contato:'',tel:'',email:'',obs:'Organizadora de eventos'}],
+    operadores:defaultOperadores(),
+    eventos:defaultEventos()
   };
 }
 
-function defaultOperadores() {
-  return [
-    { id:1, nome:'Holy Drinks', produto:'Soft Drinks, Drinks, Espumantes, Vinhos, Limonada Italiana', poc:'Claudio Ferraz', tel:'11 949828444', insta:'', tipo:'Tenda', segmentos:['seg5','seg2'], status:'Contratado', cidades:'São Paulo, Porto Alegre, Curitiba', carga:'', volt:'', dim:'', obs:'Operação própria', isHoly:true },
-    { id:2, nome:'Porto do BBQ', produto:'American BBQ', poc:'Leandro', tel:'11 97173-7438', insta:'@portodobbq', tipo:'Pit Smoker', segmentos:['seg1'], status:'Contratado', cidades:'São Paulo, Curitiba, Porto Alegre', carga:'', volt:'', dim:'', obs:'' },
-    { id:3, nome:'Yaki Fry', produto:'Japonesa, Poke, Yakssoba', poc:'Eduardo Tamashiro', tel:'11 94718-6322', insta:'@yakifryfoodtruck', tipo:'Truck', segmentos:['seg1'], status:'Contratado', cidades:'São Paulo, Porto Alegre, Curitiba', carga:'12', volt:'', dim:'', obs:'' },
-    { id:4, nome:'Asato Foods', produto:'Pastel, Crepe no Palito', poc:'Bitcho', tel:'11 99653-0434', insta:'', tipo:'Trailer', segmentos:['seg1','seg4'], status:'Contratado', cidades:'São Paulo, Curitiba', carga:'8', volt:'', dim:'', obs:'' },
-    { id:5, nome:'Casa Bashyo', produto:'Frango Keraguê', poc:'Jonathan', tel:'11 95700-2602', insta:'@casabashiyo', tipo:'Tenda', segmentos:['seg1'], status:'Contratado', cidades:'São Paulo', carga:'1.5', volt:'220v', dim:'', obs:'' },
-    { id:6, nome:'Meu Baiano', produto:'Nordestina', poc:'Mário', tel:'11 99622-6215', insta:'@meubaianoacaraje', tipo:'Trailer', segmentos:['seg1'], status:'Contratado', cidades:'São Paulo', carga:'7', volt:'220v', dim:'', obs:'' },
-    { id:7, nome:'OZ Tacos', produto:'Mexicana', poc:'Wellington', tel:'11 98534-3359', insta:'@oztacos', tipo:'Truck', segmentos:['seg1'], status:'Contratado', cidades:'São Paulo', carga:'3', volt:'', dim:'', obs:'' },
-    { id:8, nome:'Truck da Roça', produto:'Lanches Regionais', poc:'Dante', tel:'14 99613-5455', insta:'', tipo:'Truck', segmentos:['seg1'], status:'Contratado', cidades:'São Paulo', carga:'12', volt:'', dim:'', obs:'' },
-    { id:9, nome:'Rota 66', produto:'Boteco, Hambúrguer', poc:'Letícia', tel:'11 94770-1682', insta:'@rota66lanches', tipo:'Truck', segmentos:['seg1'], status:'Contratado', cidades:'São Paulo', carga:'8', volt:'', dim:'', obs:'' },
-    { id:10, nome:'Box das Frutas', produto:'Açaí, Wrap, Tortas', poc:'Guilherme', tel:'11 96435-7390', insta:'@boxdafruta', tipo:'Tenda', segmentos:['seg3'], status:'Contratado', cidades:'São Paulo', carga:'8', volt:'220v', dim:'', obs:'' },
-    { id:11, nome:'Melo Pipocas', produto:'Pipocas', poc:'Lucas', tel:'11 95830-3263', insta:'', tipo:'Carrinho', segmentos:['seg4'], status:'Contratado', cidades:'São Paulo, Curitiba, Porto Alegre', carga:'6', volt:'', dim:'', obs:'' },
-    { id:12, nome:'Vulcano', produto:'Milkshake', poc:'Rodrigo', tel:'11 99614-2005', insta:'@vulcanoshake', tipo:'Truck', segmentos:['seg3'], status:'Contratado', cidades:'São Paulo', carga:'6', volt:'220v', dim:'', obs:'' },
-    { id:13, nome:'Cleto Batatas', produto:'Batata Frita', poc:'Claudia', tel:'11 99641-4000', insta:'', tipo:'Truck', segmentos:['seg4'], status:'Contratado', cidades:'São Paulo', carga:'', volt:'', dim:'', obs:'' },
-    { id:14, nome:'Mestre Kuka Burguer', produto:'Hambúrguer', poc:'Kuka', tel:'11 99995-8355', insta:'@mestre_kuka_burguer', tipo:'Truck', segmentos:['seg1'], status:'Contratado', cidades:'São Paulo', carga:'', volt:'', dim:'', obs:'' },
-    { id:15, nome:'Açaí Fruta Brasileira', produto:'Gelatos', poc:'Fábio', tel:'11 99957-0395', insta:'', tipo:'Tenda', segmentos:['seg3'], status:'Contratado', cidades:'São Paulo', carga:'', volt:'', dim:'', obs:'' },
-    { id:16, nome:'Pripoca', produto:'Pipocas Gourmet', poc:'Priscila', tel:'11 91481-3738', insta:'@pripocaoficial', tipo:'Carrinho', segmentos:['seg4'], status:'Contratado', cidades:'São Paulo', carga:'', volt:'', dim:'', obs:'' },
-    { id:17, nome:'Be Mellow', produto:'Brigaderia', poc:'Humberto', tel:'11 97975-9824', insta:'@bemellow_', tipo:'Carrinho', segmentos:['seg3'], status:'Contratado', cidades:'São Paulo', carga:'', volt:'', dim:'', obs:'' },
-    { id:18, nome:'Valhalla Chopp & Beer', produto:'Chopp', poc:'Álvaro', tel:'11 98805-9943', insta:'@valhallachopp', tipo:'Truck', segmentos:['seg2'], status:'Contratado', cidades:'São Paulo, Curitiba', carga:'', volt:'', dim:'', obs:'' },
-    { id:19, nome:'Churras do Batata', produto:'Espetinhos', poc:'Batata', tel:'51 983322929', insta:'', tipo:'Truck', segmentos:['seg1'], status:'Contratado', cidades:'Porto Alegre', carga:'', volt:'', dim:'', obs:'' },
-    { id:20, nome:'Tribbu do Açaí', produto:'Açaí, Milkshake', poc:'Márcia', tel:'51 99402-7190', insta:'@tribbudoacai', tipo:'Truck', segmentos:['seg3'], status:'Contratado', cidades:'Porto Alegre', carga:'', volt:'', dim:'', obs:'' },
-    { id:21, nome:'Clube do Assador', produto:'Lanches Uruguaios', poc:'Giuliano', tel:'51 98948-3711', insta:'@clubedoassador', tipo:'Truck', segmentos:['seg1'], status:'Contratado', cidades:'Porto Alegre', carga:'', volt:'', dim:'', obs:'' },
-    { id:22, nome:'T&R', produto:'Espetinhos', poc:'Rúbia', tel:'41 99511-8452', insta:'', tipo:'Truck', segmentos:['seg1'], status:'Contratado', cidades:'Curitiba', carga:'', volt:'', dim:'', obs:'' },
-    { id:23, nome:'Lori Pizza', produto:'Pizza', poc:'Leandro Sodré', tel:'41 99635-9972', insta:'', tipo:'Truck', segmentos:['seg1'], status:'Contratado', cidades:'Curitiba', carga:'', volt:'', dim:'', obs:'' },
-    { id:24, nome:'Santo Bubble Waffle', produto:'Bubble, Açaí', poc:'Eliu', tel:'41 99983-4895', insta:'', tipo:'Truck', segmentos:['seg3'], status:'Contratado', cidades:'Curitiba', carga:'', volt:'', dim:'', obs:'' },
-    { id:25, nome:'Vitória Churros', produto:'Churros', poc:'', tel:'41 98791-1836', insta:'', tipo:'Truck', segmentos:['seg3'], status:'Contratado', cidades:'Curitiba', carga:'', volt:'', dim:'', obs:'' },
+function defaultOperadores(){
+  return[
+    {id:1,nome:'Holy Drinks',produto:'Soft Drinks, Drinks, Espumantes, Vinhos',poc:'Claudio Ferraz',tel:'11 949828444',insta:'',tipo:'Tenda',segmentos:['seg5','seg2'],status:'Contratado',cidades:'São Paulo, Porto Alegre, Curitiba',carga:'',volt:'',dim:'',obs:'',isHoly:true},
+    {id:2,nome:'Porto do BBQ',produto:'American BBQ',poc:'Leandro',tel:'11 97173-7438',insta:'@portodobbq',tipo:'Pit Smoker',segmentos:['seg1'],status:'Contratado',cidades:'São Paulo, Curitiba, Porto Alegre',carga:'',volt:'',dim:'',obs:''},
+    {id:3,nome:'Yaki Fry',produto:'Japonesa, Poke, Yakssoba',poc:'Eduardo Tamashiro',tel:'11 94718-6322',insta:'@yakifryfoodtruck',tipo:'Truck',segmentos:['seg1'],status:'Contratado',cidades:'São Paulo, Porto Alegre, Curitiba',carga:'12',volt:'',dim:'',obs:''},
+    {id:4,nome:'Asato Foods',produto:'Pastel, Crepe no Palito',poc:'Bitcho',tel:'11 99653-0434',insta:'',tipo:'Trailer',segmentos:['seg1','seg4'],status:'Contratado',cidades:'São Paulo, Curitiba',carga:'8',volt:'',dim:'',obs:''},
+    {id:5,nome:'Casa Bashyo',produto:'Frango Keraguê',poc:'Jonathan',tel:'11 95700-2602',insta:'@casabashiyo',tipo:'Tenda',segmentos:['seg1'],status:'Contratado',cidades:'São Paulo',carga:'1.5',volt:'220v',dim:'',obs:''},
+    {id:6,nome:'Meu Baiano',produto:'Nordestina',poc:'Mário',tel:'11 99622-6215',insta:'@meubaianoacaraje',tipo:'Trailer',segmentos:['seg1'],status:'Contratado',cidades:'São Paulo',carga:'7',volt:'220v',dim:'',obs:''},
+    {id:7,nome:'OZ Tacos',produto:'Mexicana',poc:'Wellington',tel:'11 98534-3359',insta:'@oztacos',tipo:'Truck',segmentos:['seg1'],status:'Contratado',cidades:'São Paulo',carga:'3',volt:'',dim:'',obs:''},
+    {id:8,nome:'Truck da Roça',produto:'Lanches Regionais',poc:'Dante',tel:'14 99613-5455',insta:'',tipo:'Truck',segmentos:['seg1'],status:'Contratado',cidades:'São Paulo',carga:'12',volt:'',dim:'',obs:''},
+    {id:9,nome:'Rota 66',produto:'Boteco, Hambúrguer',poc:'Letícia',tel:'11 94770-1682',insta:'@rota66lanches',tipo:'Truck',segmentos:['seg1'],status:'Contratado',cidades:'São Paulo',carga:'8',volt:'',dim:'',obs:''},
+    {id:10,nome:'Box das Frutas',produto:'Açaí, Wrap, Tortas',poc:'Guilherme',tel:'11 96435-7390',insta:'@boxdafruta',tipo:'Tenda',segmentos:['seg3'],status:'Contratado',cidades:'São Paulo',carga:'8',volt:'220v',dim:'',obs:''},
+    {id:11,nome:'Melo Pipocas',produto:'Pipocas',poc:'Lucas',tel:'11 95830-3263',insta:'',tipo:'Carrinho',segmentos:['seg4'],status:'Contratado',cidades:'São Paulo, Curitiba, Porto Alegre',carga:'6',volt:'',dim:'',obs:''},
+    {id:12,nome:'Vulcano',produto:'Milkshake',poc:'Rodrigo',tel:'11 99614-2005',insta:'@vulcanoshake',tipo:'Truck',segmentos:['seg3'],status:'Contratado',cidades:'São Paulo',carga:'6',volt:'220v',dim:'',obs:''},
+    {id:13,nome:'Cleto Batatas',produto:'Batata Frita',poc:'Claudia',tel:'11 99641-4000',insta:'',tipo:'Truck',segmentos:['seg4'],status:'Contratado',cidades:'São Paulo',carga:'',volt:'',dim:'',obs:''},
+    {id:14,nome:'Mestre Kuka Burguer',produto:'Hambúrguer',poc:'Kuka',tel:'11 99995-8355',insta:'@mestre_kuka_burguer',tipo:'Truck',segmentos:['seg1'],status:'Contratado',cidades:'São Paulo',carga:'',volt:'',dim:'',obs:''},
+    {id:15,nome:'Açaí Fruta Brasileira',produto:'Gelatos',poc:'Fábio',tel:'11 99957-0395',insta:'',tipo:'Tenda',segmentos:['seg3'],status:'Contratado',cidades:'São Paulo',carga:'',volt:'',dim:'',obs:''},
+    {id:16,nome:'Pripoca',produto:'Pipocas Gourmet',poc:'Priscila',tel:'11 91481-3738',insta:'@pripocaoficial',tipo:'Carrinho',segmentos:['seg4'],status:'Contratado',cidades:'São Paulo',carga:'',volt:'',dim:'',obs:''},
+    {id:17,nome:'Be Mellow',produto:'Brigaderia',poc:'Humberto',tel:'11 97975-9824',insta:'@bemellow_',tipo:'Carrinho',segmentos:['seg3'],status:'Contratado',cidades:'São Paulo',carga:'',volt:'',dim:'',obs:''},
+    {id:18,nome:'Valhalla Chopp & Beer',produto:'Chopp',poc:'Álvaro',tel:'11 98805-9943',insta:'@valhallachopp',tipo:'Truck',segmentos:['seg2'],status:'Contratado',cidades:'São Paulo, Curitiba',carga:'',volt:'',dim:'',obs:''},
+    {id:19,nome:'Churras do Batata',produto:'Espetinhos',poc:'Batata',tel:'51 983322929',insta:'',tipo:'Truck',segmentos:['seg1'],status:'Contratado',cidades:'Porto Alegre',carga:'',volt:'',dim:'',obs:''},
+    {id:20,nome:'Tribbu do Açaí',produto:'Açaí, Milkshake',poc:'Márcia',tel:'51 99402-7190',insta:'@tribbudoacai',tipo:'Truck',segmentos:['seg3'],status:'Contratado',cidades:'Porto Alegre',carga:'',volt:'',dim:'',obs:''},
+    {id:21,nome:'Clube do Assador',produto:'Lanches Uruguaios',poc:'Giuliano',tel:'51 98948-3711',insta:'@clubedoassador',tipo:'Truck',segmentos:['seg1'],status:'Contratado',cidades:'Porto Alegre',carga:'',volt:'',dim:'',obs:''},
+    {id:22,nome:'T&R',produto:'Espetinhos',poc:'Rúbia',tel:'41 99511-8452',insta:'',tipo:'Truck',segmentos:['seg1'],status:'Contratado',cidades:'Curitiba',carga:'',volt:'',dim:'',obs:''},
+    {id:23,nome:'Lori Pizza',produto:'Pizza',poc:'Leandro Sodré',tel:'41 99635-9972',insta:'',tipo:'Truck',segmentos:['seg1'],status:'Contratado',cidades:'Curitiba',carga:'',volt:'',dim:'',obs:''},
+    {id:24,nome:'Santo Bubble Waffle',produto:'Bubble, Açaí',poc:'Eliu',tel:'41 99983-4895',insta:'',tipo:'Truck',segmentos:['seg3'],status:'Contratado',cidades:'Curitiba',carga:'',volt:'',dim:'',obs:''},
+    {id:25,nome:'Vitória Churros',produto:'Churros',poc:'',tel:'41 98791-1836',insta:'',tipo:'Truck',segmentos:['seg3'],status:'Contratado',cidades:'Curitiba',carga:'',volt:'',dim:'',obs:''},
   ];
 }
 
-function defaultEventos() {
-  return [
-    { id:'ev1', nome:'Drone Art Show', apelido:'DAS', clienteId:'cl1', inicio:'2025-03-01', fim:'2025-04-30', dias:[5,6,0], cidades:['São Paulo','Porto Alegre','Curitiba'], obs:'Evento encerrado — dados históricos', segmentosConfig:[{segId:'seg1',vagas:10},{segId:'seg2',vagas:3},{segId:'seg3',vagas:3},{segId:'seg4',vagas:3},{segId:'seg5',vagas:1}], escala:{}, vagasOverride:{} },
-    { id:'ev2', nome:'Brilha Sonhos', apelido:'BS', clienteId:'cl1', inicio:'2025-05-20', fim:'2025-09-27', dias:[3,4,5,6,0], cidades:['São Paulo'], obs:'Datas a confirmar. Line-up em definição.', segmentosConfig:[{segId:'seg1',vagas:3},{segId:'seg2',vagas:3},{segId:'seg3',vagas:2},{segId:'seg4',vagas:2}], escala:{}, vagasOverride:{} }
+function defaultEventos(){
+  return[
+    {id:'ev1',nome:'Drone Art Show',apelido:'DAS',clienteId:'cl1',status:'concluido',inicio:'2025-03-01',fim:'2025-04-30',dias:[5,6,0],horarioInicio:'18:00',horarioFim:'23:00',publicoDia:800,cidades:['São Paulo','Porto Alegre','Curitiba'],obs:'Evento encerrado',segmentosConfig:[{segId:'seg1',vagas:10},{segId:'seg2',vagas:3},{segId:'seg3',vagas:3},{segId:'seg4',vagas:3},{segId:'seg5',vagas:1}],escala:{},vagasOverride:{},horarioOverride:{}},
+    {id:'ev2',nome:'Brilha Sonhos',apelido:'BS',clienteId:'cl1',status:'ativo',inicio:'2025-05-20',fim:'2025-09-27',dias:[3,4,5,6,0],horarioInicio:'17:00',horarioFim:'22:00',publicoDia:500,cidades:['São Paulo'],obs:'Datas a confirmar.',segmentosConfig:[{segId:'seg1',vagas:3},{segId:'seg2',vagas:3},{segId:'seg3',vagas:2},{segId:'seg4',vagas:2}],escala:{},vagasOverride:{},horarioOverride:{}}
   ];
 }
 
-let DB = loadDB();
-let currentUser = null;
-let _segColorSel = SEG_CORES[0];
+let DB=loadDB();
+let currentUser=null;
+let _segColorSel=SEG_CORES[0];
 let _editEvId=null,_editOpId=null,_editSegId=null,_editClId=null;
 let _evCidades=[];
+let _evDiasEspeciais=[];
 let _escDay=null,_escEvId=null,_escCid=null;
 let _vagasDayKey=null,_vagasEvId=null,_vagasCid=null;
+let _horarioDayKey=null,_horarioEvId=null;
+let _lastAccessedDay=null;
+let _archivedVisible=false;
+
+// =============================================
+// AUTO-ARCHIVE CHECK
+// =============================================
+function autoArchiveCheck(){
+  const today=new Date(); today.setHours(0,0,0,0);
+  DB.eventos.forEach(ev=>{
+    if(ev.status==='ativo'&&ev.fim){
+      const end=new Date(ev.fim+'T00:00:00');
+      // Only archive the day AFTER the last day (end < today, not <=)
+      if(end<today) ev.status='concluido';
+    }
+    // Remove start date → archive
+    if(ev.status==='ativo'&&!ev.inicio) ev.status='adiado';
+    // Trash expiry
+    if(ev.status==='excluido'&&ev.deletedAt){
+      const trashDays=DB.config.trashDays||30;
+      const del=new Date(ev.deletedAt);
+      const diff=(today-del)/(1000*60*60*24);
+      if(diff>trashDays) ev.status='excluido_permanente';
+    }
+  });
+  DB.eventos=DB.eventos.filter(ev=>ev.status!=='excluido_permanente');
+  persist();
+}
 
 // =============================================
 // LOGIN
 // =============================================
-function doLogin() {
-  const u = document.getElementById('loginUser').value.trim();
-  const p = document.getElementById('loginPass').value;
-  const found = DB.users.find(x => x.user===u && x.pass===p);
-  if (!found) { document.getElementById('loginErr').textContent='Usuário ou senha incorretos.'; return; }
-  currentUser = found;
+const DEV_MODE=true; // SET TO false BEFORE PRODUCTION
+
+function doLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value;
+  const found=DB.users.find(x=>x.user===u&&x.pass===p);
+  if(!found){document.getElementById('loginErr').textContent='Usuário ou senha incorretos.';return;}
+  currentUser=found;
+  _enterApp();
+}
+
+function _enterApp(){
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('mainApp').style.display='block';
+  autoArchiveCheck();
   nav('dashboard');
 }
-function doLogout() {
+
+function doLogout(){
   currentUser=null;
+  if(DEV_MODE){_enterApp();return;} // In dev mode, logout goes back to app directly
   document.getElementById('loginScreen').style.display='flex';
   document.getElementById('mainApp').style.display='none';
   document.getElementById('loginUser').value='';
@@ -654,11 +770,17 @@ function doLogout() {
   document.getElementById('loginErr').textContent='';
 }
 
+// Auto-enter in dev mode
+if(DEV_MODE){
+  currentUser={user:'dev',name:'Dev'};
+  document.addEventListener('DOMContentLoaded',()=>{_enterApp();});
+}
+
 // =============================================
 // NAVIGATION
 // =============================================
-const PAGE_TITLES={dashboard:'Dashboard',eventos:'Eventos',escala:'Escalas',operadores:'Operadores',segmentos:'Segmentos',clientes:'Clientes',configuracoes:'Configurações'};
-function nav(page) {
+const PAGE_TITLES={dashboard:'Dashboard',eventos:'Eventos',escala:'Escalas',calendario:'Calendário Geral',operadores:'Operadores',segmentos:'Segmentos',clientes:'Clientes',configuracoes:'Configurações'};
+function nav(page){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
@@ -670,6 +792,7 @@ function nav(page) {
   else if(page==='operadores'){ta.innerHTML=`<button class="btn btn-gold" onclick="openModalOp()">+ Novo Operador</button>`;renderOpFilters();renderOperadores();}
   else if(page==='dashboard') renderDashboard();
   else if(page==='escala'){buildEscalaSelects();checkAlertPopup();}
+  else if(page==='calendario'){buildCalEvFilter();renderCalendario();}
   else if(page==='segmentos') renderSegmentos();
   else if(page==='clientes'){ta.innerHTML=`<button class="btn btn-gold" onclick="openModalCliente()">+ Novo Cliente</button>`;renderClientes();}
   else if(page==='configuracoes') renderConfig();
@@ -677,43 +800,114 @@ function nav(page) {
 }
 
 // =============================================
+// HELPERS
+// =============================================
+function fmtDate(s){if(!s)return'—';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`;}
+function fmtHora(h){return h||'—';}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function closePopup(id){document.getElementById(id).classList.remove('open');}
+
+function getEventDays(ev){
+  const days=[];
+  if(!ev.inicio) return days;
+  const end=ev.fim?new Date(ev.fim+'T00:00:00'):null;
+  // Regular days
+  if(ev.inicio&&ev.fim){
+    let d=new Date(ev.inicio+'T00:00:00');
+    while(d<=end){
+      if(ev.dias.includes(d.getDay())) days.push(new Date(d));
+      d.setDate(d.getDate()+1);
+    }
+  }
+  // Apply diasEspeciais
+  const especiais=ev.diasEspeciais||[];
+  especiais.forEach(de=>{
+    const dk=de.data;
+    if(de.tipo==='incluir'){
+      if(!days.find(d=>d.toISOString().split('T')[0]===dk)){
+        days.push(new Date(dk+'T00:00:00'));
+      }
+    } else if(de.tipo==='excluir'){
+      const idx=days.findIndex(d=>d.toISOString().split('T')[0]===dk);
+      if(idx>=0) days.splice(idx,1);
+    }
+  });
+  days.sort((a,b)=>a-b);
+  return days;
+}
+
+function getEvTotalVagas(ev){return(ev.segmentosConfig||[]).reduce((a,sc)=>a+(sc.vagas||0),0);}
+
+function sortEventos(evs){
+  const today=new Date(); today.setHours(0,0,0,0);
+  return [...evs].sort((a,b)=>{
+    const da=a.inicio?new Date(a.inicio+'T00:00:00'):new Date('9999-01-01');
+    const db2=b.inicio?new Date(b.inicio+'T00:00:00'):new Date('9999-01-01');
+    if(da-db2!==0) return da-db2;
+    const pa=a.publicoDia||0, pb=b.publicoDia||0;
+    if(pa!==pb) return pb-pa;
+    return getEvTotalVagas(b)-getEvTotalVagas(a);
+  });
+}
+
+function isActive(ev){return ev.status==='ativo';}
+function isArchived(ev){return ['concluido','cancelado','adiado','excluido'].includes(ev.status);}
+
+// =============================================
 // ALERT SYSTEM
 // =============================================
-function getDayAlertStatus(ev, dateKey, cidade) {
-  const today = new Date(); today.setHours(0,0,0,0);
-  const day = new Date(dateKey+'T00:00:00');
-  const daysUntil = Math.ceil((day-today)/(1000*60*60*24));
-  const alertDays = DB.config.alertDays || 7;
-  const opIds = ((ev.escala[cidade]||{})[dateKey]||[]);
-  const totalVagas = getDayVagas(ev, dateKey);
-  const totalFilled = opIds.length;
-  const isIncomplete = totalFilled < totalVagas;
-  const hasOverride = ev.vagasOverride && ev.vagasOverride[cidade] && ev.vagasOverride[cidade][dateKey];
-  const isPast = day < today;
-
-  if (isPast) return { status:'ok', icon:'', color:'' };
-  if (!isIncomplete) return { status:'ok', icon:'✓', color:'var(--green)' };
-  if (daysUntil <= alertDays) return {
-    status:'critical', icon:'🔴',
-    title:`Alerta crítico: ${totalFilled}/${totalVagas} vagas preenchidas — evento em ${daysUntil} dia(s)`,
-    color:'var(--alert)', hasOverride
-  };
-  return {
-    status:'warn', icon:'⚠️',
-    title:`Atenção: ${totalFilled}/${totalVagas} vagas preenchidas`,
-    color:'var(--warn)', hasOverride
-  };
+function getDayAlertStatus(ev,dateKey,cid){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const day=new Date(dateKey+'T00:00:00');
+  const daysUntil=Math.ceil((day-today)/(1000*60*60*24));
+  const alertDays=DB.config.alertDays||7;
+  const opIds=((ev.escala[cid]||{})[dateKey]||[]);
+  const totalV=getDayVagasTotal(ev,dateKey,cid);
+  const filled=opIds.length;
+  const isIncomplete=filled<totalV;
+  const hasOvr=ev.vagasOverride&&ev.vagasOverride[cid]&&ev.vagasOverride[cid][dateKey];
+  if(day<today) return{status:'past'};
+  if(!isIncomplete) return{status:'ok',icon:'✓',color:'var(--green)'};
+  if(daysUntil<=alertDays) return{status:'critical',icon:'🔴',title:`Alerta: ${filled}/${totalV} vagas — faltam ${daysUntil}d`,color:'var(--alert)',hasOvr};
+  return{status:'warn',icon:'⚠️',title:`Atenção: ${filled}/${totalV} vagas pendentes`,color:'var(--warn)',hasOvr};
 }
 
-function getDayVagas(ev, dateKey) {
-  if (ev.vagasOverride && _escCid && ev.vagasOverride[_escCid] && ev.vagasOverride[_escCid][dateKey]) {
-    return Object.values(ev.vagasOverride[_escCid][dateKey]).reduce((a,v)=>a+v,0);
+function getDayVagasTotal(ev,dateKey,cid){
+  if(ev.vagasOverride&&cid&&ev.vagasOverride[cid]&&ev.vagasOverride[cid][dateKey]){
+    return Object.values(ev.vagasOverride[cid][dateKey]).reduce((a,v)=>a+v,0);
   }
-  return (ev.segmentosConfig||[]).reduce((a,sc)=>a+(sc.vagas||0),0);
+  return getEvTotalVagas(ev);
+}
+// Alias used in alert status
+function getDayVagasTotalByCid(ev,dateKey,cid){return getDayVagasTotal(ev,dateKey,cid);}
+
+function getDayAlertStatus(ev,dateKey,cid){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const day=new Date(dateKey+'T00:00:00');
+  const daysUntil=Math.ceil((day-today)/(1000*60*60*24));
+  const alertDays=DB.config.alertDays||7;
+  const opIds=((ev.escala[cid]||{})[dateKey]||[]);
+  const totalV=getDayVagasTotal(ev,dateKey,cid);
+  const filled=opIds.length;
+  const hasOvr=!!(ev.vagasOverride&&ev.vagasOverride[cid]&&ev.vagasOverride[cid][dateKey]);
+  if(day<today) return{status:'past'};
+  if(totalV===0) return{status:'ok',icon:'',color:'var(--text-muted)'};
+  if(filled>=totalV) return{status:'ok',icon:'✓',color:'var(--green)'};
+  if(daysUntil<=alertDays) return{status:'critical',icon:'🔴',title:`Alerta: ${filled}/${totalV} vagas — faltam ${daysUntil}d`,color:'var(--alert)',hasOvr};
+  return{status:'warn',icon:'⚠️',title:`Atenção: ${filled}/${totalV} vagas pendentes`,color:'var(--warn)',hasOvr};
 }
 
-function getCriticalDays(ev) {
-  if (!ev.inicio||!ev.fim) return [];
+function getSegVagaForDay(ev,dateKey,cid,segId){
+  if(ev.vagasOverride&&ev.vagasOverride[cid]&&ev.vagasOverride[cid][dateKey]&&ev.vagasOverride[cid][dateKey][segId]!==undefined){
+    return ev.vagasOverride[cid][dateKey][segId];
+  }
+  const sc=(ev.segmentosConfig||[]).find(s=>s.segId===segId);
+  return sc?sc.vagas:0;
+}
+
+function getCriticalDays(ev){
+  if(!ev.inicio||!ev.fim||!isActive(ev)) return[];
   const today=new Date(); today.setHours(0,0,0,0);
   const alertDays=DB.config.alertDays||7;
   const result=[];
@@ -726,8 +920,8 @@ function getCriticalDays(ev) {
         const daysUntil=Math.ceil((d-today)/(1000*60*60*24));
         if(daysUntil>=0&&daysUntil<=alertDays){
           const opIds=((ev.escala[cid]||{})[dk]||[]);
-          const totalVagas=(ev.segmentosConfig||[]).reduce((a,sc)=>a+(sc.vagas||0),0);
-          if(opIds.length<totalVagas) result.push({ev,dateKey:dk,cidade:cid,daysUntil,filled:opIds.length,total:totalVagas});
+          const totalV=getDayVagasTotal(ev,dk,cid);
+          if(opIds.length<totalV) result.push({ev,dateKey:dk,cidade:cid,daysUntil,filled:opIds.length,total:totalV});
         }
       }
       d.setDate(d.getDate()+1);
@@ -736,16 +930,15 @@ function getCriticalDays(ev) {
   return result;
 }
 
-function checkAlertPopup() {
+function checkAlertPopup(){
   if(!DB.config.popup) return;
   const critical=[];
-  DB.eventos.forEach(ev=>critical.push(...getCriticalDays(ev)));
+  DB.eventos.filter(isActive).forEach(ev=>critical.push(...getCriticalDays(ev)));
   if(!critical.length) return;
-  const list=document.getElementById('popupAlertList');
-  list.innerHTML=critical.map(c=>`
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:6px;margin-bottom:6px;font-size:13px">
+  document.getElementById('popupAlertList').innerHTML=critical.map(c=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:6px;margin-bottom:5px;font-size:13px">
       <div><strong>${c.ev.nome}</strong> — ${fmtDate(c.dateKey)} · ${c.cidade}</div>
-      <div style="color:var(--alert);font-weight:700">${c.filled}/${c.total} vagas · ${c.daysUntil}d</div>
+      <div style="color:var(--alert);font-weight:700">${c.filled}/${c.total} · ${c.daysUntil}d</div>
     </div>`).join('');
   document.getElementById('popupAlerts').classList.add('open');
 }
@@ -753,41 +946,43 @@ function checkAlertPopup() {
 // =============================================
 // DASHBOARD
 // =============================================
-function renderDashboard() {
-  const total=DB.operadores.length;
-  const cont=DB.operadores.filter(o=>o.status==='Contratado').length;
+function renderDashboard(){
+  const activeEvs=DB.eventos.filter(isActive);
   document.getElementById('dashStats').innerHTML=`
-    <div class="stat-card"><div class="stat-label">Operadores</div><div class="stat-value">${total}</div><div class="stat-sub">no banco</div></div>
-    <div class="stat-card"><div class="stat-label">Contratados</div><div class="stat-value">${cont}</div><div class="stat-sub">confirmados</div></div>
-    <div class="stat-card"><div class="stat-label">Eventos</div><div class="stat-value">${DB.eventos.length}</div><div class="stat-sub">cadastrados</div></div>
+    <div class="stat-card"><div class="stat-label">Operadores</div><div class="stat-value">${DB.operadores.length}</div><div class="stat-sub">no banco</div></div>
+    <div class="stat-card"><div class="stat-label">Contratados</div><div class="stat-value">${DB.operadores.filter(o=>o.status==='Contratado').length}</div><div class="stat-sub">confirmados</div></div>
+    <div class="stat-card"><div class="stat-label">Eventos Ativos</div><div class="stat-value">${activeEvs.length}</div><div class="stat-sub">em andamento</div></div>
     <div class="stat-card"><div class="stat-label">Clientes</div><div class="stat-value">${DB.clientes.length}</div><div class="stat-sub">parceiros</div></div>`;
 
-  // Populate event filter
   const evSel=document.getElementById('dashEvFilter');
   const cur=evSel.value;
-  evSel.innerHTML=`<option value="all">Todos os eventos</option>`+DB.eventos.map(ev=>`<option value="${ev.id}" ${ev.id===cur?'selected':''}>${ev.nome}</option>`).join('');
+  evSel.innerHTML=`<option value="all">Todos os eventos</option>`+activeEvs.map(ev=>`<option value="${ev.id}" ${ev.id===cur?'selected':''}>${ev.nome}</option>`).join('');
 
-  // Upcoming days
   const today=new Date(); today.setHours(0,0,0,0);
-  const upcoming=[];
   const filterEv=evSel.value;
-  DB.eventos.forEach(ev=>{
+  // Collect next 7 EVENT days (not calendar days)
+  const upcoming=[];
+  activeEvs.forEach(ev=>{
     if(filterEv!=='all'&&ev.id!==filterEv) return;
-    if(!ev.inicio||!ev.fim) return;
-    let d=new Date(ev.inicio+'T00:00:00');
-    const end=new Date(ev.fim+'T00:00:00');
-    while(d<=end&&upcoming.length<14){
-      if(ev.dias.includes(d.getDay())&&d>=today){
+    if(!ev.inicio) return;
+    const evStart=new Date(ev.inicio+'T00:00:00');
+    // Search up to 365 days from today to find event days
+    const searchEnd=ev.fim?new Date(ev.fim+'T00:00:00'):new Date(today.getTime()+365*24*60*60*1000);
+    let d=new Date(Math.max(today.getTime(), evStart.getTime()));
+    let count=0;
+    while(d<=searchEnd&&count<400){
+      if(ev.dias.includes(d.getDay())){
         upcoming.push({ev,day:new Date(d)});
       }
       d.setDate(d.getDate()+1);
+      count++;
     }
   });
   upcoming.sort((a,b)=>a.day-b.day);
   const shown=upcoming.slice(0,7);
 
   if(!shown.length){
-    document.getElementById('dashUpcoming').innerHTML=`<div style="text-align:center;color:var(--text-muted);padding:24px">Nenhum dia de operação próximo</div>`;
+    document.getElementById('dashUpcoming').innerHTML=`<div style="text-align:center;color:var(--text-muted);padding:24px">Nenhum dia de operação futuro encontrado</div>`;
   } else {
     document.getElementById('dashUpcoming').innerHTML=`<div class="upcoming-grid">`+shown.map(({ev,day})=>{
       const dk=day.toISOString().split('T')[0];
@@ -795,112 +990,213 @@ function renderDashboard() {
       const cid=ev.cidades[0]||'';
       const opIds=((ev.escala[cid]||{})[dk]||[]);
       const ops=opIds.map(id=>DB.operadores.find(o=>o.id===id)).filter(Boolean);
-      const totalVagas=(ev.segmentosConfig||[]).reduce((a,sc)=>a+(sc.vagas||0),0);
-      const alertSt=getDayAlertStatus(ev,dk,cid);
+      const totalV=getDayVagasTotal(ev,dk,cid);
+      const al=getDayAlertStatus(ev,dk,cid);
+      const evColor=DB.segmentos[0]?.cor||'#C9A84C';
       return `<div class="upcoming-day ${isToday?'today':''}">
         <div class="upcoming-day-header">
-          <div><div class="upcoming-day-name">${DIAS_SEMANA[day.getDay()]} · ${ev.apelido||ev.nome}</div><div class="upcoming-day-date" style="color:${isToday?'var(--gold)':'var(--text)'}">${day.getDate()} ${MESES_C[day.getMonth()]}</div></div>
-          ${alertSt.icon?`<span class="alert-icon" title="${alertSt.title||''}">${alertSt.icon}</span>`:''}
+          <div>
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:${isToday?'var(--gold)':'var(--text-muted)'}">${DIAS_SEMANA[day.getDay()]}</div>
+            <div style="font-size:16px;font-weight:700;color:${isToday?'var(--gold)':'var(--text)'}">${day.getDate()} ${MESES_C[day.getMonth()]}</div>
+            <div style="font-size:10px;padding:1px 5px;border-radius:3px;margin-top:3px;background:rgba(201,168,76,0.12);color:var(--gold);font-weight:600">${ev.apelido||ev.nome}</div>
+          </div>
+          ${al.icon&&al.status!=='ok'?`<span class="alert-icon" title="${al.title||''}">${al.icon}</span>`:''}
         </div>
         <div class="upcoming-day-body">
-          ${ops.slice(0,3).map(op=>{
-            const seg=op.segmentos&&op.segmentos.length?DB.segmentos.find(s=>s.id===op.segmentos[0]):null;
-            return `<div class="upcoming-op" style="border-left-color:${seg?seg.cor:'#888'}">${op.nome}</div>`;
-          }).join('')}
+          ${ops.slice(0,3).map(op=>{const seg=op.segmentos?.length?DB.segmentos.find(s=>s.id===op.segmentos[0]):null;return`<div class="upcoming-op" style="border-left-color:${seg?seg.cor:'#888'}">${op.nome}</div>`;}).join('')}
           ${ops.length>3?`<div style="font-size:10px;color:var(--text-muted);padding:2px 0">+${ops.length-3} mais</div>`:''}
           ${!ops.length?`<div style="font-size:10px;color:var(--text-muted);padding:4px 0">Sem operadores</div>`:''}
-          <div style="font-size:10px;color:var(--text-muted);margin-top:4px">${opIds.length}/${totalVagas} vagas</div>
+          <div style="font-size:10px;color:${al.color||'var(--text-muted)'};margin-top:4px;font-weight:600">${opIds.length}/${totalV} vagas · ${ev.horarioInicio||'?'}–${ev.horarioFim||'?'}</div>
         </div>
       </div>`;
     }).join('')+'</div>';
   }
 
-  // Events list
-  document.getElementById('dashEventList').innerHTML=DB.eventos.map(ev=>{
+  document.getElementById('dashEventList').innerHTML=sortEventos(activeEvs).map(ev=>{
     const cl=DB.clientes.find(c=>c.id===ev.clienteId);
-    return `<div style="padding:10px;background:var(--dark3);border-radius:var(--radius-sm);margin-bottom:6px;cursor:pointer" onclick="verEscalaEv('${ev.id}')">
+    return`<div style="padding:10px;background:var(--dark3);border-radius:var(--radius-sm);margin-bottom:6px;cursor:pointer" onclick="verEscalaEv('${ev.id}')">
       <div style="display:flex;justify-content:space-between"><strong>${ev.nome}</strong>${ev.apelido?`<span class="badge badge-gold" style="font-size:10px">${ev.apelido}</span>`:''}</div>
       ${cl?`<div style="font-size:11px;color:var(--gold);margin-top:2px">${cl.nome}</div>`:''}
       <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${fmtDate(ev.inicio)} → ${fmtDate(ev.fim)}</div>
     </div>`;
   }).join('');
 
-  // Segments
   document.getElementById('dashSegList').innerHTML=DB.segmentos.map(seg=>{
     const count=DB.operadores.filter(o=>o.segmentos&&o.segmentos.includes(seg.id)).length;
-    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
-      <span>${seg.icone}</span><span style="flex:1;font-size:13px">${seg.nome}</span>
-      <span style="font-size:18px;font-weight:700;color:${seg.cor};font-family:'Playfair Display',serif">${count}</span>
-    </div>`;
+    return`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><span>${seg.icone}</span><span style="flex:1;font-size:13px">${seg.nome}</span><span style="font-size:18px;font-weight:700;color:${seg.cor};font-family:'Playfair Display',serif">${count}</span></div>`;
   }).join('');
 }
 
 // =============================================
 // EVENTOS
 // =============================================
-function renderEventos() {
-  const g=document.getElementById('eventsGrid');
-  if(!DB.eventos.length){g.innerHTML=`<div style="color:var(--text-muted);padding:40px;text-align:center">Nenhum evento cadastrado</div>`;return;}
-  g.innerHTML=DB.eventos.map(ev=>{
-    const cl=DB.clientes.find(c=>c.id===ev.clienteId);
-    const totalV=(ev.segmentosConfig||[]).reduce((a,sc)=>a+(sc.vagas||0),0);
-    return `<div class="event-card">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px">
-        <div class="event-name">${ev.nome}</div>
-        <div style="display:flex;gap:5px">${ev.apelido?`<span class="badge badge-gold" style="font-size:10px">${ev.apelido}</span>`:''}<button class="btn btn-outline btn-sm" onclick="editEvento('${ev.id}')">Editar</button></div>
+function renderEventos(){
+  const activeEvs=sortEventos(DB.eventos.filter(isActive));
+  const archivedEvs=DB.eventos.filter(isArchived);
+
+  document.getElementById('eventsGridActive').innerHTML=activeEvs.length
+    ?activeEvs.map(evCard).join('')
+    :`<div style="color:var(--text-muted);padding:40px;text-align:center">Nenhum evento ativo</div>`;
+
+  document.getElementById('eventsGridArchived').innerHTML=archivedEvs.length
+    ?`<div class="events-grid">`+archivedEvs.map(ev=>evCard(ev,true)).join('')+'</div>'
+    :`<div style="color:var(--text-muted);padding:20px;text-align:center;font-size:13px">Nenhum evento arquivado</div>`;
+
+  document.getElementById('archivedSection').style.display=archivedEvs.length?'block':'none';
+}
+
+function evCard(ev,archived=false){
+  const cl=DB.clientes.find(c=>c.id===ev.clienteId);
+  const totalV=getEvTotalVagas(ev);
+  const statusCss=EV_STATUS_CSS[ev.status]||'status-ativo';
+  const statusLbl=EV_STATUS_LABEL[ev.status]||ev.status;
+  const trashInfo=ev.status==='excluido'&&ev.deletedAt?`<div style="font-size:11px;color:var(--red);margin-top:4px">Excluído em ${fmtDate(ev.deletedAt.split('T')[0])} — será removido permanentemente após ${DB.config.trashDays||30} dias</div>`:'';
+  return`<div class="event-card ${archived?'archived':''}" style="opacity:${archived?0.7:1}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+      <div class="event-name">${ev.nome}</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">
+        ${ev.apelido?`<span class="badge badge-gold" style="font-size:10px">${ev.apelido}</span>`:''}
+        <span class="status-badge ${statusCss}">${statusLbl}</span>
+        <button class="btn btn-outline btn-sm" onclick="editEvento('${ev.id}')">Editar</button>
       </div>
-      ${cl?`<div class="event-client">📋 ${cl.nome}</div>`:''}
-      <div class="event-meta">
-        <span>📅 ${fmtDate(ev.inicio)} → ${fmtDate(ev.fim)}</span>
-        <span>📍 ${ev.cidades.join(', ')}</span>
-        <span>🗓 ${ev.dias.map(d=>DIAS_SEMANA[d]).join(', ')}</span>
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:12px">
-        ${(ev.segmentosConfig||[]).map(sc=>{const seg=DB.segmentos.find(s=>s.id===sc.segId);return seg?`<span style="padding:2px 7px;background:rgba(0,0,0,0.3);border:1px solid ${seg.cor}40;color:${seg.cor};border-radius:4px;font-size:11px">${seg.icone} ${seg.nome}·${sc.vagas}v</span>`:''}).join('')}
-      </div>
-      <div class="event-stats">
-        <div><div class="ev-stat-val">${(ev.segmentosConfig||[]).length}</div><div class="ev-stat-lbl">Segmentos</div></div>
-        <div><div class="ev-stat-val">${totalV}</div><div class="ev-stat-lbl">Vagas/dia</div></div>
-        <div><div class="ev-stat-val">${ev.cidades.length}</div><div class="ev-stat-lbl">Cidades</div></div>
-      </div>
-      ${ev.obs?`<div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05);font-size:11px;color:var(--text-muted)">${ev.obs}</div>`:''}
-      <div style="margin-top:12px"><button class="btn btn-ghost btn-sm" onclick="verEscalaEv('${ev.id}')">Ver Escala →</button></div>
-    </div>`;
-  }).join('');
+    </div>
+    ${cl?`<div class="event-client">📋 ${cl.nome}</div>`:''}
+    <div class="event-meta">
+      <span>📅 ${fmtDate(ev.inicio)} → ${fmtDate(ev.fim)}</span>
+      <span>📍 ${ev.cidades.join(', ')}</span>
+      ${ev.horarioInicio?`<span>🕐 ${ev.horarioInicio}–${ev.horarioFim||'?'}</span>`:''}
+      ${ev.publicoDia?`<span>👥 ~${ev.publicoDia}/dia</span>`:''}
+    </div>
+    ${trashInfo}
+    <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:10px">
+      ${(ev.segmentosConfig||[]).map(sc=>{const seg=DB.segmentos.find(s=>s.id===sc.segId);return seg?`<span style="padding:2px 7px;background:rgba(0,0,0,0.3);border:1px solid ${seg.cor}40;color:${seg.cor};border-radius:4px;font-size:11px">${seg.icone} ${seg.nome}·${sc.vagas}v</span>`:''}).join('')}
+    </div>
+    <div class="event-stats">
+      <div><div class="ev-stat-val">${(ev.segmentosConfig||[]).length}</div><div class="ev-stat-lbl">Segmentos</div></div>
+      <div><div class="ev-stat-val">${totalV}</div><div class="ev-stat-lbl">Vagas/dia</div></div>
+      <div><div class="ev-stat-val">${ev.cidades.length}</div><div class="ev-stat-lbl">Cidades</div></div>
+    </div>
+    ${!archived?`<div style="margin-top:12px;display:flex;gap:6px"><button class="btn btn-ghost btn-sm" onclick="verEscalaEv('${ev.id}')">Ver Escala →</button></div>`:''}
+    ${ev.status==='excluido'?`<div style="margin-top:10px;display:flex;gap:6px"><button class="btn btn-outline btn-sm" onclick="restaurarEvento('${ev.id}')">↩ Restaurar</button></div>`:''}
+  </div>`;
+}
+
+function toggleArchived(){
+  _archivedVisible=!_archivedVisible;
+  document.getElementById('eventsGridArchived').style.display=_archivedVisible?'block':'none';
+  document.getElementById('archivedToggleIcon').textContent=_archivedVisible?'▲ ocultar':'▼ mostrar';
 }
 
 function verEscalaEv(id){nav('escala');setTimeout(()=>{document.getElementById('escEvSel').value=id;onEscEvChange();},80);}
 
+function calcPublico(from){
+  const diaEl=document.getElementById('evPublicoDia');
+  const totEl=document.getElementById('evPublicoTotal');
+  if(!diaEl||!totEl) return;
+  // need days count - approximate from selected dias
+  const diasSel=[...document.querySelectorAll('#evDias .check-pill.checked')].length||1;
+  const ev=_editEvId?DB.eventos.find(e=>e.id===_editEvId):null;
+  const numDays=ev?getEventDays(ev).length:diasSel;
+  if(from==='dia'){
+    const v=parseInt(diaEl.value)||0;
+    totEl.value=v*numDays||'';
+  } else {
+    const v=parseInt(totEl.value)||0;
+    diaEl.value=numDays?Math.round(v/numDays):'';
+  }
+}
+
+function addDiaEspecial(){
+  const data=document.getElementById('evDiaEspecialData').value;
+  if(!data){showToast('Selecione uma data');return;}
+  const tipo=document.getElementById('evDiaEspecialTipo').value;
+  if(_evDiasEspeciais.find(d=>d.data===data)){showToast('Data já adicionada');return;}
+  _evDiasEspeciais.push({data,tipo});
+  document.getElementById('evDiaEspecialData').value='';
+  renderDiasEspeciais();
+}
+function renderDiasEspeciais(){
+  document.getElementById('evDiasEspeciaisList').innerHTML=_evDiasEspeciais.map((de,i)=>`
+    <span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:${de.tipo==='incluir'?'rgba(76,175,124,0.12)':'rgba(224,82,82,0.12)'};border:1px solid ${de.tipo==='incluir'?'rgba(76,175,124,0.3)':'rgba(224,82,82,0.3)'};border-radius:6px;font-size:12px;color:${de.tipo==='incluir'?'var(--green)':'var(--red)'}">
+      ${de.tipo==='incluir'?'+':'−'} ${fmtDate(de.data)}
+      <button onclick="_evDiasEspeciais.splice(${i},1);renderDiasEspeciais()" style="background:none;border:none;cursor:pointer;padding:0;font-size:12px;color:inherit">×</button>
+    </span>`).join('');
+}
+
 function openModalEvento(){
-  _editEvId=null; _evCidades=[];
+  _editEvId=null; _evCidades=[]; _evDiasEspeciais=[];
   document.getElementById('mEventoTitle').textContent='Novo Evento';
   ['evNome','evApelido','evObs'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('evInicio').value=''; document.getElementById('evFim').value='';
+  document.getElementById('evHorarioInicio').value=''; document.getElementById('evHorarioFim').value='';
+  document.getElementById('evPublicoDia').value=''; document.getElementById('evPublicoTotal').value='';
+  document.getElementById('evStatus').value='ativo';
   buildClienteSelectEl('evCliente',null);
   buildDiasCheck('evDias',[]);
-  renderEvCidades(); buildEvSegs({});
+  renderEvCidades(); renderDiasEspeciais(); buildEvSegs({});
+  document.getElementById('evDeleteBtn').innerHTML='';
   document.getElementById('mEvento').classList.add('open');
 }
 
 function editEvento(id){
   const ev=DB.eventos.find(e=>e.id===id); if(!ev) return;
-  _editEvId=id; _evCidades=[...ev.cidades];
+  _editEvId=id; _evCidades=[...ev.cidades]; _evDiasEspeciais=[...(ev.diasEspeciais||[])];
   document.getElementById('mEventoTitle').textContent='Editar Evento';
   document.getElementById('evNome').value=ev.nome||'';
   document.getElementById('evApelido').value=ev.apelido||'';
   document.getElementById('evInicio').value=ev.inicio||'';
   document.getElementById('evFim').value=ev.fim||'';
+  document.getElementById('evHorarioInicio').value=ev.horarioInicio||'';
+  document.getElementById('evHorarioFim').value=ev.horarioFim||'';
+  document.getElementById('evPublicoDia').value=ev.publicoDia||'';
+  document.getElementById('evPublicoTotal').value=ev.publicoDia&&ev.inicio&&ev.fim?ev.publicoDia*Math.max(1,getEventDays(ev).length):'';
+  document.getElementById('evStatus').value=ev.status||'ativo';
   document.getElementById('evObs').value=ev.obs||'';
   buildClienteSelectEl('evCliente',ev.clienteId);
   buildDiasCheck('evDias',ev.dias||[]);
-  renderEvCidades();
+  renderEvCidades(); renderDiasEspeciais();
   const sm={};(ev.segmentosConfig||[]).forEach(sc=>sm[sc.segId]=sc);
   buildEvSegs(sm);
+  const isExcluido=ev.status==='excluido';
+  document.getElementById('evDeleteBtn').innerHTML=`
+    <div style="display:flex;gap:6px">
+      ${!isExcluido?`<button class="btn btn-warn btn-sm" onclick="arquivarEvento('${ev.id}','cancelado')">Cancelar Evento</button>`:''}
+      ${!isExcluido?`<button class="btn btn-danger btn-sm" onclick="excluirEvento('${ev.id}')">🗑 Excluir</button>`:''}
+      ${isExcluido?`<button class="btn btn-outline btn-sm" onclick="restaurarEvento('${ev.id}')">↩ Restaurar</button>`:''}
+    </div>`;
   document.getElementById('mEvento').classList.add('open');
 }
 
+function arquivarEvento(id,status){
+  closeModal('mEvento');
+  showConfirm(
+    status==='cancelado'?'Cancelar Evento':'Arquivar Evento',
+    `Isso moverá o evento para a seção de arquivados com status "${EV_STATUS_LABEL[status]}". Ele não aparecerá mais no dashboard.`,
+    ()=>{const ev=DB.eventos.find(e=>e.id===id);if(ev){ev.status=status;persist();renderEventos();showToast('Evento arquivado.');}}
+  );
+}
+
+function excluirEvento(id){
+  closeModal('mEvento');
+  showConfirm(
+    '🗑 Excluir Evento',
+    `O evento será movido para a lixeira e excluído permanentemente após ${DB.config.trashDays||30} dias. Você pode restaurá-lo antes desse prazo.`,
+    ()=>{
+      const ev=DB.eventos.find(e=>e.id===id);
+      if(ev){ev.status='excluido';ev.deletedAt=new Date().toISOString();persist();renderEventos();showToast('Evento movido para a lixeira.');}
+    },
+    'Mover para Lixeira'
+  );
+}
+
+function restaurarEvento(id){
+  const ev=DB.eventos.find(e=>e.id===id); if(!ev) return;
+  ev.status='ativo'; delete ev.deletedAt;
+  persist(); renderEventos(); showToast('Evento restaurado!');
+}
+
 function buildClienteSelectEl(elId,sel){
-  document.getElementById(elId).innerHTML=`<option value="">— Sem cliente —</option>`+DB.clientes.map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${c.nome}</option>`).join('');
+  document.getElementById(elId).innerHTML=`<option value="">— Selecionar cliente * —</option>`+DB.clientes.map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${c.nome}</option>`).join('');
 }
 function buildDiasCheck(elId,sel){
   document.getElementById(elId).innerHTML=DIAS_SEMANA.map((d,i)=>`<label class="check-pill ${sel.includes(i)?'checked':''}" onclick="this.classList.toggle('checked')"><input type="hidden" data-val="${i}"> ${d}</label>`).join('');
@@ -910,7 +1206,7 @@ function renderEvCidades(){document.getElementById('evCidList').innerHTML=_evCid
 function buildEvSegs(sm){
   document.getElementById('evSegs').innerHTML=DB.segmentos.map(seg=>{
     const sc=sm[seg.id]||{};
-    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--dark3);border:1px solid rgba(255,255,255,0.05);border-radius:var(--radius-sm);margin-bottom:5px">
+    return`<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--dark3);border:1px solid rgba(255,255,255,0.05);border-radius:var(--radius-sm);margin-bottom:5px">
       <input type="checkbox" id="evSeg_${seg.id}" ${sc.segId||sc.vagas?'checked':''} style="width:auto;accent-color:var(--gold)">
       <span style="font-size:15px">${seg.icone}</span>
       <span style="flex:1;font-size:13px;font-weight:600;color:${seg.cor}">${seg.nome}</span>
@@ -919,23 +1215,44 @@ function buildEvSegs(sm){
     </div>`;
   }).join('');
 }
+
 function salvarEvento(){
-  const nome=document.getElementById('evNome').value.trim(); if(!nome){showToast('Informe o nome');return;}
+  const nome=document.getElementById('evNome').value.trim();
+  const clienteId=document.getElementById('evCliente').value;
+  const inicio=document.getElementById('evInicio').value;
+  const cidades=[..._evCidades];
+  const errors=[];
+  if(!nome) errors.push('nome do evento');
+  if(!clienteId) errors.push('cliente');
+  if(!inicio) errors.push('data de início');
+  if(!cidades.length) errors.push('ao menos uma cidade');
+  if(errors.length){showToast(`Preencha: ${errors.join(', ')}`);return;}
+
   const dias=[...document.querySelectorAll('#evDias .check-pill.checked')].map(el=>parseInt(el.querySelector('input').dataset.val));
   const segConfig=DB.segmentos.filter(seg=>document.getElementById('evSeg_'+seg.id)?.checked).map(seg=>({segId:seg.id,vagas:parseInt(document.getElementById('evSegV_'+seg.id)?.value)||0}));
-  const data={nome,apelido:document.getElementById('evApelido').value,clienteId:document.getElementById('evCliente').value||null,inicio:document.getElementById('evInicio').value,fim:document.getElementById('evFim').value,dias,cidades:[..._evCidades],obs:document.getElementById('evObs').value,segmentosConfig:segConfig};
+  const data={nome,apelido:document.getElementById('evApelido').value,clienteId,status:document.getElementById('evStatus').value,inicio,fim:document.getElementById('evFim').value,horarioInicio:document.getElementById('evHorarioInicio').value,horarioFim:document.getElementById('evHorarioFim').value,publicoDia:parseInt(document.getElementById('evPublicoDia').value)||0,dias,diasEspeciais:[..._evDiasEspeciais],cidades,obs:document.getElementById('evObs').value,segmentosConfig:segConfig};
+
+  // If no inicio → archive
+  if(!data.inicio) data.status='adiado';
+
   if(_editEvId){const ev=DB.eventos.find(e=>e.id===_editEvId);Object.assign(ev,data);}
-  else{data.id='ev'+Date.now();data.escala={};data.vagasOverride={};DB.eventos.push(data);}
-  // Auto-link to client
-  if(data.clienteId){
-    const cl=DB.clientes.find(c=>c.id===data.clienteId);
-    if(cl&&(!cl.eventos||!cl.eventos.includes(_editEvId||data.id))){
-      if(!cl.eventos) cl.eventos=[];
-      const evId=_editEvId||data.id;
-      if(!cl.eventos.includes(evId)) cl.eventos.push(evId);
-    }
-  }
+  else{data.id='ev'+Date.now();data.escala={};data.vagasOverride={};data.horarioOverride={};DB.eventos.push(data);}
+  // Link client
+  if(data.clienteId){const cl=DB.clientes.find(c=>c.id===data.clienteId);if(cl){if(!cl.eventos)cl.eventos=[];const evId=_editEvId||data.id;if(!cl.eventos.includes(evId))cl.eventos.push(evId);}}
   persist();closeModal('mEvento');renderEventos();showToast('Evento salvo!');
+}
+
+// =============================================
+// CONFIRM HELPER
+// =============================================
+function showConfirm(title,msg,onOk,okLabel='Confirmar'){
+  document.getElementById('confirmTitle').textContent=title;
+  document.getElementById('confirmMsg').textContent=msg;
+  document.getElementById('confirmExtra').innerHTML='';
+  const btn=document.getElementById('confirmOkBtn');
+  btn.textContent=okLabel;
+  btn.onclick=()=>{closePopup('popupConfirm');onOk();};
+  document.getElementById('popupConfirm').classList.add('open');
 }
 
 // =============================================
@@ -943,25 +1260,25 @@ function salvarEvento(){
 // =============================================
 function buildEscalaSelects(){
   const evSel=document.getElementById('escEvSel');
-  evSel.innerHTML=DB.eventos.map(ev=>`<option value="${ev.id}">${ev.nome}${ev.apelido?' ('+ev.apelido+')':''}</option>`).join('');
+  evSel.innerHTML=DB.eventos.filter(isActive).map(ev=>`<option value="${ev.id}">${ev.nome}${ev.apelido?' ('+ev.apelido+')':''}</option>`).join('');
   onEscEvChange();
 }
 function onEscEvChange(){
-  const evId=document.getElementById('escEvSel').value;
-  _escEvId=evId;
-  const ev=DB.eventos.find(e=>e.id===evId);
+  _escEvId=document.getElementById('escEvSel').value;
+  const ev=DB.eventos.find(e=>e.id===_escEvId);
   const cidSel=document.getElementById('escCidSel');
   if(!ev){cidSel.innerHTML='';renderEscala();return;}
   cidSel.innerHTML=ev.cidades.map(c=>`<option value="${c}">${c}</option>`).join('');
   _escCid=cidSel.value;
   renderEscala();
 }
+
 function renderEscala(){
   _escCid=document.getElementById('escCidSel').value;
   _escEvId=document.getElementById('escEvSel').value;
   const ev=DB.eventos.find(e=>e.id===_escEvId);
   const el=document.getElementById('escalaContent');
-  if(!ev||!ev.inicio||!ev.fim){el.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:40px">Selecione um evento com datas</div>`;return;}
+  if(!ev||!ev.inicio||!ev.fim){el.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:40px">Selecione um evento com datas definidas</div>`;return;}
   const start=new Date(ev.inicio+'T00:00:00'),end=new Date(ev.fim+'T00:00:00');
   const today=new Date(); today.setHours(0,0,0,0);
   const cid=_escCid;
@@ -979,7 +1296,7 @@ function renderEscala(){
   if(!Object.keys(byMonth).length){el.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:40px">Nenhum dia de operação configurado</div>`;return;}
   let html='';
   Object.entries(byMonth).forEach(([mk,days])=>{
-    const [y,m]=mk.split('-');
+    const[y,m]=mk.split('-');
     html+=`<div class="cal-month-title">${MESES[parseInt(m)-1]} ${y}</div><div class="day-grid">`;
     days.forEach(day=>{
       const dk=day.toISOString().split('T')[0];
@@ -987,24 +1304,35 @@ function renderEscala(){
       const isPast=day<today;
       const opIds=(cidEsc[dk]||[]);
       const ops=opIds.map(id=>DB.operadores.find(o=>o.id===id)).filter(Boolean);
-      const alert=getDayAlertStatus(ev,dk,cid);
+      const al=getDayAlertStatus(ev,dk,cid);
       const hasOvr=ev.vagasOverride&&ev.vagasOverride[cid]&&ev.vagasOverride[cid][dk];
-      const totalV=getDayVagasForCid(ev,dk,cid);
+      const hasHorOvr=ev.horarioOverride&&ev.horarioOverride[dk];
+      const totalV=getDayVagasTotal(ev,dk,cid);
+      const horInicio=hasHorOvr?ev.horarioOverride[dk].inicio:ev.horarioInicio;
+      const horFim=hasHorOvr?ev.horarioOverride[dk].fim:ev.horarioFim;
       html+=`<div class="day-card ${isToday?'today':''} ${isPast?'past':''}">
         <div class="day-card-header">
-          <div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:${isToday?'var(--gold)':'var(--text-muted)'}">${DIAS_SEMANA[day.getDay()]}</div><div style="font-size:15px;font-weight:700;color:${isToday?'var(--gold)':'var(--text)'}">${day.getDate()}</div></div>
+          <div>
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:${isToday?'var(--gold)':'var(--text-muted)'}">${DIAS_SEMANA[day.getDay()]}</div>
+            <div style="font-size:15px;font-weight:700;color:${isToday?'var(--gold)':'var(--text)'}">${day.getDate()}</div>
+            ${horInicio?`<div style="font-size:9px;color:var(--text-muted)">${horInicio}–${horFim||'?'}</div>`:''}
+          </div>
           <div class="day-alerts">
-            ${hasOvr?`<span class="alert-icon" title="Vagas deste dia foram ajustadas manualmente e diferem do padrão do evento">🔧</span>`:''}
-            ${alert.icon&&alert.status!=='ok'?`<span class="alert-icon" title="${alert.title||''}">${alert.icon}</span>`:''}
+            ${hasHorOvr?`<span class="alert-icon" title="Horário ajustado individualmente para este dia">🕐</span>`:''}
+            ${hasOvr?`<span class="alert-icon" title="Vagas ajustadas manualmente neste dia">🔧</span>`:''}
+            ${al.icon&&al.status!=='ok'&&al.status!=='past'?`<span class="alert-icon" title="${al.title||''}">${al.icon}</span>`:''}
             <button class="btn btn-ghost btn-sm" onclick="openEscDia('${dk}')" style="font-size:10px;padding:2px 7px">+Ops</button>
           </div>
         </div>
         <div class="day-ops-body">
-          ${ops.length?ops.map(op=>{const seg=op.segmentos&&op.segmentos.length?DB.segmentos.find(s=>s.id===op.segmentos[0]):null;return `<div class="op-chip" style="border-left-color:${seg?seg.cor:'#888'}" onclick="openEscDia('${dk}')"><div class="op-chip-name">${op.nome}</div><div class="op-chip-seg">${seg?seg.icone+' '+seg.nome:''}</div></div>`;}).join(''):`<div class="day-empty-txt">vazio</div>`}
+          ${ops.length?ops.map(op=>{const seg=op.segmentos?.length?DB.segmentos.find(s=>s.id===op.segmentos[0]):null;return`<div class="op-chip" style="border-left-color:${seg?seg.cor:'#888'}" onclick="openEscDia('${dk}')"><div class="op-chip-name">${op.nome}</div><div class="op-chip-seg">${seg?seg.icone+' '+seg.nome:''}</div></div>`;}).join(''):`<div class="day-empty-txt">vazio</div>`}
         </div>
         <div style="padding:0 6px 5px;display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:10px;color:var(--text-muted)">${opIds.length}/${totalV}</span>
-          <button onclick="openVagasDia('${dk}')" style="background:none;border:none;font-size:10px;color:var(--text-muted);cursor:pointer;padding:0" title="Ajustar vagas deste dia">⚙</button>
+          <span style="font-size:10px;color:${al.color||'var(--text-muted)'}">${opIds.length}/${totalV}</span>
+          <div style="display:flex;gap:3px">
+            <button onclick="openHorarioDia('${dk}')" style="background:none;border:none;font-size:11px;color:var(--text-muted);cursor:pointer;padding:1px 3px" title="Ajustar horário deste dia">🕐</button>
+            <button onclick="openVagasDia('${dk}')" style="background:none;border:none;font-size:11px;color:var(--text-muted);cursor:pointer;padding:1px 3px" title="Ajustar vagas deste dia">⚙</button>
+          </div>
         </div>
       </div>`;
     });
@@ -1013,22 +1341,9 @@ function renderEscala(){
   el.innerHTML=html;
 }
 
-function getDayVagasForCid(ev,dateKey,cid){
-  if(ev.vagasOverride&&ev.vagasOverride[cid]&&ev.vagasOverride[cid][dateKey]){
-    return Object.values(ev.vagasOverride[cid][dateKey]).reduce((a,v)=>a+v,0);
-  }
-  return (ev.segmentosConfig||[]).reduce((a,sc)=>a+(sc.vagas||0),0);
-}
-function getSegVagaForDay(ev,dateKey,cid,segId){
-  if(ev.vagasOverride&&ev.vagasOverride[cid]&&ev.vagasOverride[cid][dateKey]&&ev.vagasOverride[cid][dateKey][segId]!==undefined){
-    return ev.vagasOverride[cid][dateKey][segId];
-  }
-  const sc=(ev.segmentosConfig||[]).find(s=>s.segId===segId);
-  return sc?sc.vagas:0;
-}
-
+// ESCALA DIA
 function openEscDia(dateKey){
-  _escDay=dateKey;
+  _escDay=dateKey; _lastAccessedDay=dateKey;
   const ev=DB.eventos.find(e=>e.id===_escEvId); if(!ev) return;
   const cid=_escCid;
   const day=new Date(dateKey+'T00:00:00');
@@ -1036,7 +1351,6 @@ function openEscDia(dateKey){
   const current=((ev.escala[cid]||{})[dateKey]||[]);
   const opsCity=DB.operadores.filter(op=>!op.cidades||op.cidades.split(',').some(c=>c.trim()===cid));
   const segConfig=ev.segmentosConfig||[];
-  const autoHoly=DB.config.autoHoly;
   let html='';
   segConfig.forEach(sc=>{
     const seg=DB.segmentos.find(s=>s.id===sc.segId); if(!seg) return;
@@ -1047,12 +1361,12 @@ function openEscDia(dateKey){
     html+=`<div style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div style="font-size:11px;font-weight:700;color:${seg.cor};text-transform:uppercase;letter-spacing:1.5px">${seg.icone} ${seg.nome}</div>
-        <div id="vagasCount_${sc.segId}" style="font-size:12px;color:var(--text-muted)">${selectedInSeg.length}/${vagasSeg} vagas</div>
+        <div id="vcnt_${sc.segId}" style="font-size:12px;color:${selectedInSeg.length<vagasSeg?'var(--warn)':'var(--green)'}">${selectedInSeg.length}/${vagasSeg} vagas</div>
       </div>`;
     opsInSeg.forEach(op=>{
       const isHoly=op.isHoly||false;
-      const autoCheck=isHoly&&autoHoly&&seg.isHoly===false&&DB.segmentos.find(s=>s.id===sc.segId)&&DB.segmentos.find(s=>s.id===sc.segId).nome==='Bebidas';
-      const checked=current.includes(op.id)||(autoHoly&&isHoly&&sc.segId==='seg2'&&!current.length);
+      const autoCheck=DB.config.autoHoly&&isHoly&&sc.segId==='seg2'&&!current.length;
+      const checked=current.includes(op.id)||autoCheck;
       html+=`<label id="lbl_${op.id}_${sc.segId}" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:${checked?'rgba(201,168,76,0.06)':'var(--dark3)'};border:1px solid ${checked?'rgba(201,168,76,0.2)':'rgba(255,255,255,0.05)'};border-radius:8px;cursor:pointer;margin-bottom:4px;font-size:13px;font-weight:normal;text-transform:none;letter-spacing:0;color:var(--text)" onclick="onEscOpClick(this,'${op.id}','${sc.segId}',${vagasSeg})">
         <input type="checkbox" name="escOp" value="${op.id}" data-seg="${sc.segId}" ${checked?'checked':''} style="width:auto;accent-color:var(--gold)">
         <div style="flex:1"><div style="font-weight:600">${op.nome}${isHoly?' ✦':''}</div><div style="font-size:11px;color:var(--text-muted)">${op.produto}</div></div>
@@ -1061,7 +1375,7 @@ function openEscDia(dateKey){
     });
     html+='</div>';
   });
-  if(!html) html='<p style="color:var(--text-muted);text-align:center;padding:24px">Nenhum operador para esta cidade</p>';
+  if(!html) html='<p style="color:var(--text-muted);text-align:center;padding:24px">Nenhum operador disponível para esta cidade</p>';
   document.getElementById('mEscDiaBody').innerHTML=html;
   document.getElementById('mEscDia').classList.add('open');
 }
@@ -1070,22 +1384,28 @@ function onEscOpClick(lbl,opId,segId,maxVagas){
   const cb=lbl.querySelector('input[type=checkbox]');
   const willCheck=!cb.checked;
   if(willCheck){
-    const totalCheckedInSeg=document.querySelectorAll(`input[name="escOp"][data-seg="${segId}"]:checked`).length;
-    if(totalCheckedInSeg>=maxVagas){
-      showToast(`⚠️ Limite de ${maxVagas} vaga(s) para este segmento atingido`);
-      return;
-    }
+    const total=document.querySelectorAll(`input[name="escOp"][data-seg="${segId}"]:checked`).length;
+    if(total>=maxVagas){showToast(`⚠️ Limite de ${maxVagas} vaga(s) para este segmento atingido`);return;}
   }
   cb.checked=willCheck;
   lbl.style.background=willCheck?'rgba(201,168,76,0.06)':'var(--dark3)';
   lbl.style.border=`1px solid ${willCheck?'rgba(201,168,76,0.2)':'rgba(255,255,255,0.05)'}`;
-  updateVagasCount(segId,maxVagas);
+  const count=document.querySelectorAll(`input[name="escOp"][data-seg="${segId}"]:checked`).length;
+  const el=document.getElementById('vcnt_'+segId);
+  if(el){el.textContent=`${count}/${maxVagas} vagas`;el.style.color=count<maxVagas?'var(--warn)':'var(--green)';}
 }
 
-function updateVagasCount(segId,max){
-  const count=document.querySelectorAll(`input[name="escOp"][data-seg="${segId}"]:checked`).length;
-  const el=document.getElementById('vagasCount_'+segId);
-  if(el){el.textContent=`${count}/${max} vagas`;el.style.color=count<max?'var(--warn)':'var(--green)';}
+function resetEscalaDia(){
+  document.querySelectorAll('input[name="escOp"]').forEach(cb=>{
+    cb.checked=false;
+    const lbl=cb.closest('label');
+    if(lbl){lbl.style.background='var(--dark3)';lbl.style.border='1px solid rgba(255,255,255,0.05)';}
+  });
+  document.querySelectorAll('[id^="vcnt_"]').forEach(el=>{
+    const segId=el.id.replace('vcnt_','');
+    const ev=DB.eventos.find(e=>e.id===_escEvId);
+    if(ev){const max=getSegVagaForDay(ev,_escDay,_escCid,segId);el.textContent=`0/${max} vagas`;el.style.color='var(--warn)';}
+  });
 }
 
 function salvarEscDia(){
@@ -1099,35 +1419,82 @@ function salvarEscDia(){
 
 // COPY ESCALA
 function openCopyEscala(){
-  const ev=DB.eventos.find(e=>e.id===_escEvId); if(!ev||!ev.inicio||!ev.fim){showToast('Selecione um evento com datas');return;}
+  const ev=DB.eventos.find(e=>e.id===_escEvId);
+  if(!ev||!ev.inicio||!ev.fim){showToast('Selecione evento com datas');return;}
   const cid=_escCid;
   const days=getEventDays(ev);
+  const daysWithOps=days.filter(d=>((ev.escala[cid]||{})[d.toISOString().split('T')[0]]||[]).length>0);
+
   const originSel=document.getElementById('copyOrigin');
-  originSel.innerHTML=days.map(d=>`<option value="${d.toISOString().split('T')[0]}">${DIAS_SEMANA[d.getDay()]} ${d.getDate()} ${MESES_C[d.getMonth()]}</option>`).join('');
-  const destEl=document.getElementById('copyDestDays');
-  destEl.innerHTML=days.map(d=>{
-    const dk=d.toISOString().split('T')[0];
-    return `<label class="check-pill" onclick="this.classList.toggle('checked')" style="font-size:11px"><input type="hidden" data-dk="${dk}"> ${DIAS_SEMANA[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}</label>`;
-  }).join('');
+  // Default: last accessed day if has ops, else first day with ops, else "vazio"
+  let defaultOrigin='__reset__';
+  if(_lastAccessedDay){
+    const laDk=_lastAccessedDay;
+    const laHasOps=((ev.escala[cid]||{})[laDk]||[]).length>0;
+    if(laHasOps) defaultOrigin=laDk;
+  }
+  if(defaultOrigin==='__reset__'&&daysWithOps.length) defaultOrigin=daysWithOps[0].toISOString().split('T')[0];
+
+  originSel.innerHTML=`<option value="__reset__">— Zerar destinos (remover todos os operadores) —</option>`
+    +daysWithOps.map(d=>{const dk=d.toISOString().split('T')[0];return`<option value="${dk}" ${dk===defaultOrigin?'selected':''}>${DIAS_SEMANA[d.getDay()]} ${d.getDate()} ${MESES_C[d.getMonth()]} (${((ev.escala[cid]||{})[dk]||[]).length} ops)</option>`;}).join('');
+
+  filterCopyDest();
   document.getElementById('mCopyEsc').classList.add('open');
 }
+
+function filterCopyDest(){
+  const ev=DB.eventos.find(e=>e.id===_escEvId); if(!ev) return;
+  const cid=_escCid;
+  const originDk=document.getElementById('copyOrigin').value;
+  const days=getEventDays(ev);
+  // Get origin ops for comparison
+  const originOps=originDk==='__reset__'?[]:((ev.escala[cid]||{})[originDk]||[]);
+
+  const destEl=document.getElementById('copyDestDays');
+  destEl.innerHTML=days.filter(d=>{
+    const dk=d.toISOString().split('T')[0];
+    if(dk===originDk) return false; // exclude origin
+    // If same ops as origin, exclude
+    const dayOps=((ev.escala[cid]||{})[dk]||[]);
+    if(originDk!=='__reset__'&&JSON.stringify([...dayOps].sort()===JSON.stringify([...originOps].sort()))) return false;
+    return true;
+  }).map(d=>{
+    const dk=d.toISOString().split('T')[0];
+    return`<label class="check-pill" onclick="this.classList.toggle('checked')" style="font-size:11px"><input type="hidden" data-dk="${dk}"> ${DIAS_SEMANA[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}</label>`;
+  }).join('');
+}
+
 function selectAllDest(){document.querySelectorAll('#copyDestDays .check-pill').forEach(p=>p.classList.add('checked'));}
 function clearAllDest(){document.querySelectorAll('#copyDestDays .check-pill').forEach(p=>p.classList.remove('checked'));}
+
 function executarCopy(){
   const ev=DB.eventos.find(e=>e.id===_escEvId); if(!ev) return;
-  const cid=_escCid; if(!ev.escala) ev.escala={}; if(!ev.escala[cid]) ev.escala[cid]={};
-  const origin=document.getElementById('copyOrigin').value;
-  const srcOps=(ev.escala[cid][origin]||[]);
+  const cid=_escCid;
+  if(!ev.escala) ev.escala={}; if(!ev.escala[cid]) ev.escala[cid]={};
+  const originDk=document.getElementById('copyOrigin').value;
+  const srcOps=originDk==='__reset__'?[]:((ev.escala[cid]||{})[originDk]||[]);
   const dests=[...document.querySelectorAll('#copyDestDays .check-pill.checked input')].map(i=>i.dataset.dk);
-  dests.forEach(dk=>{ ev.escala[cid][dk]=[...srcOps]; });
-  persist();closeModal('mCopyEsc');renderEscala();showToast(`Escala copiada para ${dests.length} dia(s)!`);
-}
-function getEventDays(ev){
-  const days=[];
-  let d=new Date(ev.inicio+'T00:00:00');
-  const end=new Date(ev.fim+'T00:00:00');
-  while(d<=end){if(ev.dias.includes(d.getDay())) days.push(new Date(d));d.setDate(d.getDate()+1);}
-  return days;
+  if(!dests.length){showToast('Selecione ao menos um dia de destino');return;}
+
+  // Check if any dest has ops already
+  const destsWithOps=dests.filter(dk=>((ev.escala[cid]||{})[dk]||[]).length>0);
+
+  const doApply=()=>{
+    dests.forEach(dk=>{ev.escala[cid][dk]=[...srcOps];});
+    persist();closeModal('mCopyEsc');renderEscala();
+    showToast(originDk==='__reset__'?`${dests.length} dia(s) zerado(s)`:`Escala copiada para ${dests.length} dia(s)!`);
+  };
+
+  if(destsWithOps.length>0){
+    showConfirm(
+      '⚠️ Substituir Escalas Existentes',
+      `${destsWithOps.length} dos dias selecionados já possuem operadores escalados. Ao continuar, as escalas existentes serão substituídas. Deseja prosseguir?`,
+      doApply,
+      'Sim, substituir'
+    );
+  } else {
+    doApply();
+  }
 }
 
 // VAGAS DIA
@@ -1155,19 +1522,18 @@ function openVagasDia(dateKey){
   document.getElementById('btnSalvarVagas').disabled=false;
   document.getElementById('mVagasDia').classList.add('open');
 }
+
 function checkVagasChange(){
   const ev=DB.eventos.find(e=>e.id===_vagasEvId); if(!ev) return;
   let changed=false;
-  (ev.segmentosConfig||[]).forEach(sc=>{
-    const inp=document.getElementById('vagasInput_'+sc.segId);
-    if(inp&&parseInt(inp.value)!==sc.vagas) changed=true;
-  });
+  (ev.segmentosConfig||[]).forEach(sc=>{const inp=document.getElementById('vagasInput_'+sc.segId);if(inp&&parseInt(inp.value)!==sc.vagas) changed=true;});
   const ackBox=document.getElementById('vagasAckBox');
   const ackCb=document.getElementById('vagasAck');
   const btn=document.getElementById('btnSalvarVagas');
   if(changed){ackBox.style.display='block';btn.disabled=!ackCb.checked;}
   else{ackBox.style.display='none';btn.disabled=false;}
 }
+
 function salvarVagasDia(){
   const ev=DB.eventos.find(e=>e.id===_vagasEvId); if(!ev) return;
   const cid=_vagasCid;
@@ -1175,16 +1541,191 @@ function salvarVagasDia(){
   if(!ev.vagasOverride[cid]) ev.vagasOverride[cid]={};
   let hasOverride=false;
   const dayOverride={};
-  (ev.segmentosConfig||[]).forEach(sc=>{
-    const inp=document.getElementById('vagasInput_'+sc.segId);
-    if(!inp) return;
-    const val=parseInt(inp.value);
-    if(val!==sc.vagas) hasOverride=true;
-    dayOverride[sc.segId]=val;
-  });
+  (ev.segmentosConfig||[]).forEach(sc=>{const inp=document.getElementById('vagasInput_'+sc.segId);if(!inp) return;const val=parseInt(inp.value);if(val!==sc.vagas) hasOverride=true;dayOverride[sc.segId]=val;});
   if(hasOverride) ev.vagasOverride[cid][_vagasDayKey]=dayOverride;
   else delete ev.vagasOverride[cid][_vagasDayKey];
   persist();closeModal('mVagasDia');renderEscala();showToast('Vagas atualizadas!');
+}
+
+// HORÁRIO DIA
+function openHorarioDia(dateKey){
+  _horarioDayKey=dateKey; _horarioEvId=_escEvId;
+  const ev=DB.eventos.find(e=>e.id===_escEvId); if(!ev) return;
+  const day=new Date(dateKey+'T00:00:00');
+  document.getElementById('mHorarioDiaTitle').textContent=`Horário — ${DIAS_SEMANA[day.getDay()]} ${day.getDate()} ${MESES_C[day.getMonth()]}`;
+  const ovr=(ev.horarioOverride||{})[dateKey]||{};
+  document.getElementById('horarioDiaInicio').value=ovr.inicio||'';
+  document.getElementById('horarioDiaFim').value=ovr.fim||'';
+  document.getElementById('mHorarioDia').classList.add('open');
+}
+
+function salvarHorarioDia(){
+  const ev=DB.eventos.find(e=>e.id===_horarioEvId); if(!ev) return;
+  if(!ev.horarioOverride) ev.horarioOverride={};
+  const inicio=document.getElementById('horarioDiaInicio').value;
+  const fim=document.getElementById('horarioDiaFim').value;
+  if(!inicio&&!fim) delete ev.horarioOverride[_horarioDayKey];
+  else ev.horarioOverride[_horarioDayKey]={inicio,fim};
+  persist();closeModal('mHorarioDia');renderEscala();showToast('Horário salvo!');
+}
+
+// =============================================
+// CALENDÁRIO (read-only, full calendar view)
+// =============================================
+let _calEvFilter='all';
+let _calAlertFilter='all'; // all | event | warn_or_alert | warn | alert
+
+function buildCalEvFilter(){
+  const sel=document.getElementById('calEvFilter');
+  const cur=sel.value||'all';
+  sel.innerHTML=`<option value="all">Todos os eventos ativos</option>`+DB.eventos.filter(isActive).map(ev=>`<option value="${ev.id}" ${ev.id===cur?'selected':''}>${ev.nome}</option>`).join('');
+}
+
+function setCalAlertFilter(f){
+  _calAlertFilter=f;
+  document.querySelectorAll('.cal-filter-btn').forEach(b=>{
+    b.classList.toggle('active',b.dataset.f===f);
+  });
+  renderCalendario();
+}
+
+function renderCalendario(){
+  _calEvFilter=document.getElementById('calEvFilter').value||'all';
+  const evs=DB.eventos.filter(ev=>(isActive(ev)||ev.status==='concluido')&&(_calEvFilter==='all'||ev.id===_calEvFilter));
+  const el=document.getElementById('calendarioContent');
+  if(!evs.length){el.innerHTML=`<div style="text-align:center;color:var(--text-muted);padding:40px">Nenhum evento</div>`;return;}
+
+  const today=new Date(); today.setHours(0,0,0,0);
+
+  // Build map of ALL event days — one entry PER EVENT (not per city)
+  const evDayMap={}; // dk -> [{ev, worstAl, totalOps, totalVagas}]
+  evs.forEach(ev=>{
+    if(!ev.inicio) return;
+    getEventDays(ev).forEach(d=>{
+      const dk=d.toISOString().split('T')[0];
+      if(!evDayMap[dk]) evDayMap[dk]=[];
+      // Aggregate across all cities for this event
+      let totalOps=0, totalVagas=0, worstStatus='ok';
+      ev.cidades.forEach(cid=>{
+        const opIds=((ev.escala[cid]||{})[dk]||[]);
+        const v=getDayVagasTotal(ev,dk,cid);
+        totalOps+=opIds.length; totalVagas+=v;
+        const al=getDayAlertStatus(ev,dk,cid);
+        if(al.status==='critical') worstStatus='critical';
+        else if(al.status==='warn'&&worstStatus!=='critical') worstStatus='warn';
+        else if(al.status==='ok'&&worstStatus==='ok') worstStatus='ok';
+        else if(al.status==='past'&&worstStatus==='ok') worstStatus='past';
+      });
+      const alColor=worstStatus==='critical'?'var(--alert)':worstStatus==='warn'?'var(--warn)':'var(--green)';
+      const alIcon=worstStatus==='critical'?'🔴':worstStatus==='warn'?'⚠️':worstStatus==='past'?'':'✓';
+      evDayMap[dk].push({ev,worstStatus,totalOps,totalVagas,alColor,alIcon,day:d});
+    });
+  });
+
+  // Determine date range: from earliest event start to latest event end (or +6mo)
+  let minDate=null, maxDate=null;
+  evs.forEach(ev=>{
+    if(ev.inicio){const d=new Date(ev.inicio+'T00:00:00');if(!minDate||d<minDate)minDate=d;}
+    if(ev.fim){const d=new Date(ev.fim+'T00:00:00');if(!maxDate||d>maxDate)maxDate=d;}
+  });
+  if(!minDate) minDate=new Date(today);
+  if(!maxDate){maxDate=new Date(minDate);maxDate.setMonth(maxDate.getMonth()+6);}
+
+  // Apply alert filter to event days
+  function dayPassesFilter(dk){
+    if(_calAlertFilter==='all') return true;
+    const entries=evDayMap[dk];
+    if(!entries||!entries.length) return false;
+    const hasWarn=entries.some(e=>e.worstStatus==='warn');
+    const hasCrit=entries.some(e=>e.worstStatus==='critical');
+    if(_calAlertFilter==='warn_or_alert') return hasWarn||hasCrit;
+    if(_calAlertFilter==='warn') return hasWarn&&!hasCrit;
+    if(_calAlertFilter==='alert') return hasCrit;
+    return true;
+  }
+
+  // Group by month, iterating every calendar day
+  const byMonth={};
+  let d=new Date(minDate);
+  // Start from beginning of the month
+  d.setDate(1);
+  const endDate=new Date(maxDate);
+  endDate.setDate(endDate.getDate()+1);
+
+  while(d<=endDate){
+    const mk=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    const dk=d.toISOString().split('T')[0];
+    if(!byMonth[mk]) byMonth[mk]=[];
+    byMonth[mk].push({dk,day:new Date(d)});
+    d.setDate(d.getDate()+1);
+  }
+
+  let html='';
+  let totalShown=0;
+
+  Object.entries(byMonth).sort().forEach(([mk,days])=>{
+    const[y,m]=mk.split('-');
+    // Check if any day in this month passes filter
+    const monthHasDays=days.some(({dk})=>{
+      if(_calAlertFilter==='all') return true;
+      return evDayMap[dk]&&dayPassesFilter(dk);
+    });
+    if(!monthHasDays&&_calAlertFilter!=='all') return;
+
+    html+=`<div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--gold);margin:18px 0 10px">${MESES[parseInt(m)-1]} ${y}</div>`;
+    html+=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:16px">`;
+
+    // Weekday headers
+    DIAS_SEMANA.forEach(d=>{ html+=`<div style="text-align:center;font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;padding:4px 0">${d}</div>`; });
+
+    // Offset for first day of month
+    const firstDay=days[0].day.getDay();
+    for(let i=0;i<firstDay;i++) html+=`<div></div>`;
+
+    days.forEach(({dk,day})=>{
+      const isToday=day.getTime()===today.getTime();
+      const isPast=day<today;
+      const hasEvent=!!(evDayMap[dk]&&evDayMap[dk].length);
+      const passes=dayPassesFilter(dk);
+
+      if(!passes&&_calAlertFilter!=='all'){
+        html+=`<div style="background:var(--dark3);border-radius:6px;padding:6px 4px;opacity:0.18;min-height:56px">
+          <div style="text-align:center;font-size:13px;color:var(--text-muted)">${day.getDate()}</div>
+        </div>`;
+        return;
+      }
+
+      if(!hasEvent){
+        html+=`<div style="background:${isToday?'rgba(201,168,76,0.08)':'transparent'};border:1px solid ${isToday?'rgba(201,168,76,0.3)':'rgba(255,255,255,0.03)'};border-radius:6px;padding:6px 4px;min-height:56px;opacity:${isPast?0.35:0.7}">
+          <div style="text-align:center;font-size:13px;font-weight:${isToday?700:400};color:${isToday?'var(--gold)':'var(--text-muted)'}">${day.getDate()}</div>
+        </div>`;
+        return;
+      }
+
+      // Event day — one chip per EVENT (not per city)
+      const entries=evDayMap[dk];
+      const hasWarn=entries.some(e=>e.worstStatus==='warn');
+      const hasCrit=entries.some(e=>e.worstStatus==='critical');
+      const allOk=entries.every(e=>e.worstStatus==='ok'||e.worstStatus==='past');
+      const borderColor=hasCrit?'var(--alert)':hasWarn?'var(--warn)':isToday?'var(--gold)':'rgba(201,168,76,0.25)';
+      const bgColor=hasCrit?'rgba(239,68,68,0.07)':hasWarn?'rgba(245,158,11,0.07)':'rgba(201,168,76,0.05)';
+      totalShown++;
+
+      html+=`<div style="background:${bgColor};border:1px solid ${borderColor};border-radius:6px;padding:5px 4px;min-height:56px;opacity:${isPast?0.65:1}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+          <span style="font-size:13px;font-weight:700;color:${isToday?'var(--gold)':'var(--text)'}">${day.getDate()}</span>
+          <span style="font-size:11px">${hasCrit?'🔴':hasWarn?'⚠️':allOk&&!isPast?'✓':''}</span>
+        </div>
+        ${entries.map(e=>`
+          <div style="font-size:9px;font-weight:700;color:${e.alColor};background:rgba(0,0,0,0.25);border-radius:3px;padding:1px 4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${e.ev.nome} · ${e.totalOps}/${e.totalVagas} vagas">
+            ${e.ev.apelido||e.ev.nome} ${e.totalOps}/${e.totalVagas}
+          </div>`).join('')}
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+
+  el.innerHTML=html||`<div style="text-align:center;color:var(--text-muted);padding:40px">Nenhum dia encontrado com o filtro aplicado</div>`;
 }
 
 // =============================================
@@ -1204,86 +1745,25 @@ function renderOperadores(){
   if(!ops.length){document.getElementById('opTable').innerHTML=`<tr><td colspan="8"><div style="text-align:center;color:var(--text-muted);padding:28px">Nenhum resultado</div></td></tr>`;return;}
   document.getElementById('opTable').innerHTML=ops.map(op=>{
     const segs=(op.segmentos||[]).map(sid=>{const seg=DB.segmentos.find(s=>s.id===sid);return seg?`<span style="padding:2px 6px;background:rgba(0,0,0,0.3);border:1px solid ${seg.cor}50;color:${seg.cor};border-radius:4px;font-size:10px">${seg.icone} ${seg.nome}</span>`:''}).join(' ');
-    return `<tr><td><div style="font-weight:600">${op.nome}${op.isHoly?' ✦':''}</div>${op.insta?`<div style="font-size:10px;color:var(--text-muted)">${op.insta}</div>`:''}</td><td style="max-width:140px;font-size:12px;color:var(--text-muted)">${op.produto||'—'}</td><td>${segs||'—'}</td><td><span class="tag">${op.tipo||'—'}</span></td><td><div>${op.poc||'—'}</div><div style="font-size:11px;color:var(--text-muted)">${op.tel||''}</div></td><td>${(op.cidades||'').split(',').map(c=>`<span class="city-tag">${c.trim()}</span>`).join('')||'—'}</td><td><span class="badge ${STATUS_BADGE[op.status]||'badge-blue'}">${op.status}</span></td><td><div class="actions-cell"><button class="btn btn-outline btn-sm" onclick="editOp(${op.id})">Editar</button><button class="btn btn-danger btn-sm" onclick="delOp(${op.id})">✕</button></div></td></tr>`;
+    return`<tr><td><div style="font-weight:600">${op.nome}${op.isHoly?' ✦':''}</div>${op.insta?`<div style="font-size:10px;color:var(--text-muted)">${op.insta}</div>`:''}</td><td style="max-width:140px;font-size:12px;color:var(--text-muted)">${op.produto||'—'}</td><td>${segs||'—'}</td><td><span class="tag">${op.tipo||'—'}</span></td><td><div>${op.poc||'—'}</div><div style="font-size:11px;color:var(--text-muted)">${op.tel||''}</div></td><td>${(op.cidades||'').split(',').map(c=>`<span class="city-tag">${c.trim()}</span>`).join('')||'—'}</td><td><span class="badge ${STATUS_BADGE[op.status]||'badge-blue'}">${op.status}</span></td><td><div class="actions-cell"><button class="btn btn-outline btn-sm" onclick="editOp(${op.id})">Editar</button><button class="btn btn-danger btn-sm" onclick="delOp(${op.id})">✕</button></div></td></tr>`;
   }).join('');
 }
-function openModalOp(){
-  _editOpId=null;
-  document.getElementById('mOpTitle').textContent='Novo Operador';
-  ['opNome','opProduto','opPoc','opTel','opInsta','opCids','opCarga','opVolt','opDim','opObs'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('opTipo').value='Truck';document.getElementById('opStatus').value='Contratado';
-  buildOpSegs([]); document.getElementById('mOperador').classList.add('open');
-}
-function editOp(id){
-  const op=DB.operadores.find(o=>o.id===id); if(!op) return;
-  _editOpId=id;
-  document.getElementById('mOpTitle').textContent='Editar Operador';
-  document.getElementById('opNome').value=op.nome||'';document.getElementById('opProduto').value=op.produto||'';
-  document.getElementById('opPoc').value=op.poc||'';document.getElementById('opTel').value=op.tel||'';
-  document.getElementById('opInsta').value=op.insta||'';document.getElementById('opCids').value=op.cidades||'';
-  document.getElementById('opCarga').value=op.carga||'';document.getElementById('opVolt').value=op.volt||'';
-  document.getElementById('opDim').value=op.dim||'';document.getElementById('opObs').value=op.obs||'';
-  document.getElementById('opTipo').value=op.tipo||'Truck';document.getElementById('opStatus').value=op.status||'Contratado';
-  buildOpSegs(op.segmentos||[]);document.getElementById('mOperador').classList.add('open');
-}
-function buildOpSegs(sel){
-  document.getElementById('opSegs').innerHTML=DB.segmentos.map(seg=>{
-    const checked=sel.includes(seg.id);
-    return `<label class="check-pill ${checked?'checked':''}" onclick="this.classList.toggle('checked')" style="${checked?'border-color:'+seg.cor+';color:'+seg.cor:''}"><input type="hidden" data-segid="${seg.id}"> ${seg.icone} ${seg.nome}</label>`;
-  }).join('');
-}
-function salvarOperador(){
-  const nome=document.getElementById('opNome').value.trim(); if(!nome){showToast('Informe o nome');return;}
-  const segs=[...document.querySelectorAll('#opSegs .check-pill.checked input')].map(i=>i.dataset.segid);
-  const data={nome,produto:document.getElementById('opProduto').value,poc:document.getElementById('opPoc').value,tel:document.getElementById('opTel').value,insta:document.getElementById('opInsta').value,cidades:document.getElementById('opCids').value,carga:document.getElementById('opCarga').value,volt:document.getElementById('opVolt').value,dim:document.getElementById('opDim').value,obs:document.getElementById('opObs').value,tipo:document.getElementById('opTipo').value,status:document.getElementById('opStatus').value,segmentos:segs};
-  if(_editOpId){const idx=DB.operadores.findIndex(o=>o.id===_editOpId);DB.operadores[idx]={...DB.operadores[idx],...data};}
-  else{data.id=Date.now();DB.operadores.push(data);}
-  persist();closeModal('mOperador');renderOperadores();showToast('Operador salvo!');
-}
-function delOp(id){if(!confirm('Remover?'))return;DB.operadores=DB.operadores.filter(o=>o.id!==id);persist();renderOperadores();showToast('Removido');}
+function openModalOp(){_editOpId=null;document.getElementById('mOpTitle').textContent='Novo Operador';['opNome','opProduto','opPoc','opTel','opInsta','opCids','opCarga','opVolt','opDim','opObs'].forEach(id=>document.getElementById(id).value='');document.getElementById('opTipo').value='Truck';document.getElementById('opStatus').value='Contratado';buildOpSegs([]);document.getElementById('mOperador').classList.add('open');}
+function editOp(id){const op=DB.operadores.find(o=>o.id===id);if(!op)return;_editOpId=id;document.getElementById('mOpTitle').textContent='Editar Operador';document.getElementById('opNome').value=op.nome||'';document.getElementById('opProduto').value=op.produto||'';document.getElementById('opPoc').value=op.poc||'';document.getElementById('opTel').value=op.tel||'';document.getElementById('opInsta').value=op.insta||'';document.getElementById('opCids').value=op.cidades||'';document.getElementById('opCarga').value=op.carga||'';document.getElementById('opVolt').value=op.volt||'';document.getElementById('opDim').value=op.dim||'';document.getElementById('opObs').value=op.obs||'';document.getElementById('opTipo').value=op.tipo||'Truck';document.getElementById('opStatus').value=op.status||'Contratado';buildOpSegs(op.segmentos||[]);document.getElementById('mOperador').classList.add('open');}
+function buildOpSegs(sel){document.getElementById('opSegs').innerHTML=DB.segmentos.map(seg=>{const checked=sel.includes(seg.id);return`<label class="check-pill ${checked?'checked':''}" onclick="this.classList.toggle('checked')" style="${checked?'border-color:'+seg.cor+';color:'+seg.cor:''}"><input type="hidden" data-segid="${seg.id}"> ${seg.icone} ${seg.nome}</label>`;}).join('');}
+function salvarOperador(){const nome=document.getElementById('opNome').value.trim();if(!nome){showToast('Informe o nome');return;}const segs=[...document.querySelectorAll('#opSegs .check-pill.checked input')].map(i=>i.dataset.segid);const data={nome,produto:document.getElementById('opProduto').value,poc:document.getElementById('opPoc').value,tel:document.getElementById('opTel').value,insta:document.getElementById('opInsta').value,cidades:document.getElementById('opCids').value,carga:document.getElementById('opCarga').value,volt:document.getElementById('opVolt').value,dim:document.getElementById('opDim').value,obs:document.getElementById('opObs').value,tipo:document.getElementById('opTipo').value,status:document.getElementById('opStatus').value,segmentos:segs};if(_editOpId){const idx=DB.operadores.findIndex(o=>o.id===_editOpId);DB.operadores[idx]={...DB.operadores[idx],...data};}else{data.id=Date.now();DB.operadores.push(data);}persist();closeModal('mOperador');renderOperadores();showToast('Operador salvo!');}
+function delOp(id){if(!confirm('Remover operador?'))return;DB.operadores=DB.operadores.filter(o=>o.id!==id);persist();renderOperadores();showToast('Removido');}
 
 // =============================================
 // SEGMENTOS
 // =============================================
-function renderSegmentos(){
-  document.getElementById('segGrid').innerHTML=DB.segmentos.map(seg=>{
-    const count=DB.operadores.filter(o=>o.segmentos&&o.segmentos.includes(seg.id)).length;
-    return `<div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--dark3);border:1px solid ${seg.cor}25;border-radius:var(--radius-sm);margin-bottom:6px">
-      <div style="width:34px;height:34px;border-radius:8px;background:${seg.cor}20;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${seg.icone}</div>
-      <div style="flex:1"><div style="font-weight:700;font-size:13px;color:${seg.cor}">${seg.nome}${seg.isHoly?' <span style="font-size:10px;color:var(--gold)">(Operação Própria)</span>':''}</div><div style="font-size:11px;color:var(--text-muted)">${count} operador(es)</div></div>
-      <button class="btn btn-outline btn-sm" onclick="editSeg('${seg.id}')">Editar</button>
-      <button class="btn btn-danger btn-sm" onclick="delSeg('${seg.id}')">✕</button>
-    </div>`;
-  }).join('')||'<div style="color:var(--text-muted);text-align:center;padding:32px">Nenhum segmento</div>';
-}
-function openModalSeg(){
-  _editSegId=null;
-  document.getElementById('mSegTitle').textContent='Novo Segmento';
-  document.getElementById('segNome').value='';document.getElementById('segIcone').value='';
-  document.getElementById('segIsHoly').checked=false;
-  _segColorSel=SEG_CORES[0];buildSegCores();
-  document.getElementById('mSeg').classList.add('open');
-}
-function editSeg(id){
-  const seg=DB.segmentos.find(s=>s.id===id); if(!seg) return;
-  _editSegId=id;
-  document.getElementById('mSegTitle').textContent='Editar Segmento';
-  document.getElementById('segNome').value=seg.nome;document.getElementById('segIcone').value=seg.icone;
-  document.getElementById('segIsHoly').checked=!!seg.isHoly;
-  _segColorSel=seg.cor;buildSegCores();
-  document.getElementById('mSeg').classList.add('open');
-}
-function buildSegCores(){
-  document.getElementById('segCores').innerHTML=SEG_CORES.map(c=>`<div onclick="_segColorSel='${c}';buildSegCores()" style="width:26px;height:26px;border-radius:50%;background:${c};cursor:pointer;border:3px solid ${c===_segColorSel?'white':'transparent'};transition:border 0.15s"></div>`).join('');
-}
-function salvarSeg(){
-  const nome=document.getElementById('segNome').value.trim(); if(!nome){showToast('Informe o nome');return;}
-  const data={nome,icone:document.getElementById('segIcone').value||'●',cor:_segColorSel,isHoly:document.getElementById('segIsHoly').checked};
-  if(_editSegId){const seg=DB.segmentos.find(s=>s.id===_editSegId);Object.assign(seg,data);}
-  else{data.id='seg'+Date.now();DB.segmentos.push(data);}
-  persist();closeModal('mSeg');renderSegmentos();showToast('Segmento salvo!');
-}
-function delSeg(id){if(!confirm('Remover?'))return;DB.segmentos=DB.segmentos.filter(s=>s.id!==id);persist();renderSegmentos();showToast('Removido');}
+function renderSegmentos(){document.getElementById('segGrid').innerHTML=DB.segmentos.map(seg=>{const count=DB.operadores.filter(o=>o.segmentos&&o.segmentos.includes(seg.id)).length;return`<div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--dark3);border:1px solid ${seg.cor}25;border-radius:var(--radius-sm);margin-bottom:6px"><div style="width:34px;height:34px;border-radius:8px;background:${seg.cor}20;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${seg.icone}</div><div style="flex:1"><div style="font-weight:700;font-size:13px;color:${seg.cor}">${seg.nome}${seg.isHoly?' <span style="font-size:10px;color:var(--gold)">(Própria)</span>':''}</div><div style="font-size:11px;color:var(--text-muted)">${count} operador(es)</div></div><button class="btn btn-outline btn-sm" onclick="editSeg('${seg.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="delSeg('${seg.id}')">✕</button></div>`;}).join('')||'<div style="color:var(--text-muted);text-align:center;padding:32px">Nenhum segmento</div>';}
+let _segColorSel2=SEG_CORES[0];
+function openModalSeg(){_editSegId=null;document.getElementById('mSegTitle').textContent='Novo Segmento';document.getElementById('segNome').value='';document.getElementById('segIcone').value='';document.getElementById('segIsHoly').checked=false;_segColorSel2=SEG_CORES[0];buildSegCores();document.getElementById('mSeg').classList.add('open');}
+function editSeg(id){const seg=DB.segmentos.find(s=>s.id===id);if(!seg)return;_editSegId=id;document.getElementById('mSegTitle').textContent='Editar Segmento';document.getElementById('segNome').value=seg.nome;document.getElementById('segIcone').value=seg.icone;document.getElementById('segIsHoly').checked=!!seg.isHoly;_segColorSel2=seg.cor;buildSegCores();document.getElementById('mSeg').classList.add('open');}
+function buildSegCores(){document.getElementById('segCores').innerHTML=SEG_CORES.map(c=>`<div onclick="_segColorSel2='${c}';buildSegCores()" style="width:26px;height:26px;border-radius:50%;background:${c};cursor:pointer;border:3px solid ${c===_segColorSel2?'white':'transparent'};transition:border 0.15s"></div>`).join('');}
+function salvarSeg(){const nome=document.getElementById('segNome').value.trim();if(!nome){showToast('Informe o nome');return;}const data={nome,icone:document.getElementById('segIcone').value||'●',cor:_segColorSel2,isHoly:document.getElementById('segIsHoly').checked};if(_editSegId){const seg=DB.segmentos.find(s=>s.id===_editSegId);Object.assign(seg,data);}else{data.id='seg'+Date.now();DB.segmentos.push(data);}persist();closeModal('mSeg');renderSegmentos();showToast('Salvo!');}
+function delSeg(id){if(!confirm('Remover?'))return;DB.segmentos=DB.segmentos.filter(s=>s.id!==id);persist();renderSegmentos();}
 
 // =============================================
 // CLIENTES
@@ -1291,63 +1771,24 @@ function delSeg(id){if(!confirm('Remover?'))return;DB.segmentos=DB.segmentos.fil
 function renderClientes(){
   document.getElementById('clientesList').innerHTML=DB.clientes.map(cl=>{
     const evs=DB.eventos.filter(ev=>ev.clienteId===cl.id);
-    return `<div class="client-card">
+    return`<div class="client-card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
-        <div><div class="client-name">${cl.nome}</div>${cl.contato?`<div style="font-size:12px;color:var(--text-muted)">${cl.contato}${cl.tel?' · '+cl.tel:''}</div>`:''}${cl.email?`<div style="font-size:12px;color:var(--text-muted)">${cl.email}</div>`:''}</div>
+        <div><div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:3px">${cl.nome}</div>${cl.contato?`<div style="font-size:12px;color:var(--text-muted)">${cl.contato}${cl.tel?' · '+cl.tel:''}</div>`:''}${cl.email?`<div style="font-size:12px;color:var(--text-muted)">${cl.email}</div>`:''}</div>
         <div style="display:flex;gap:6px"><button class="btn btn-outline btn-sm" onclick="editCliente('${cl.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="delCliente('${cl.id}')">✕</button></div>
       </div>
       ${cl.obs?`<div style="font-size:12px;color:var(--text-muted);margin-top:6px">${cl.obs}</div>`:''}
-      <div class="client-events">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:6px;font-weight:600">Eventos vinculados</div>
-        ${evs.length?evs.map(ev=>`<span class="client-event-link" onclick="verEscalaEv('${ev.id}')">◉ ${ev.nome}${ev.apelido?' ('+ev.apelido+')':''}</span>`).join(''):`<span style="font-size:12px;color:var(--text-muted)">Nenhum evento vinculado</span>`}
-        <button class="btn btn-ghost btn-sm" style="margin-left:8px;font-size:11px" onclick="openVincEvento('${cl.id}')">+ Vincular evento</button>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06)">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:6px;font-weight:600">Eventos (${evs.length})</div>
+        ${evs.length?evs.map(ev=>`<span class="client-event-link" onclick="verEscalaEv('${ev.id}')"><span class="status-badge ${EV_STATUS_CSS[ev.status]||'status-ativo'}" style="margin-right:4px">${EV_STATUS_LABEL[ev.status]||ev.status}</span>${ev.nome}${ev.apelido?' ('+ev.apelido+')':''}</span>`).join(''):`<span style="font-size:12px;color:var(--text-muted)">Nenhum evento vinculado</span>`}
       </div>
     </div>`;
   }).join('')||'<div style="color:var(--text-muted);text-align:center;padding:40px">Nenhum cliente</div>';
 }
-function openVincEvento(clId){
-  const ev=prompt('Nome do evento para vincular (ou deixe vazio para cancelar):');
-  if(!ev) return;
-  const found=DB.eventos.find(e=>e.nome.toLowerCase().includes(ev.toLowerCase()));
-  if(!found){showToast('Evento não encontrado');return;}
-  found.clienteId=clId;persist();renderClientes();showToast('Evento vinculado!');
-}
-function openModalCliente(){
-  _editClId=null;
-  document.getElementById('mClienteTitle').textContent='Novo Cliente';
-  ['clNome','clContato','clTel','clEmail','clObs'].forEach(id=>document.getElementById(id).value='');
-  buildClEventosVinc(null);
-  document.getElementById('mCliente').classList.add('open');
-}
-function editCliente(id){
-  const cl=DB.clientes.find(c=>c.id===id); if(!cl) return;
-  _editClId=id;
-  document.getElementById('mClienteTitle').textContent='Editar Cliente';
-  document.getElementById('clNome').value=cl.nome||'';document.getElementById('clContato').value=cl.contato||'';
-  document.getElementById('clTel').value=cl.tel||'';document.getElementById('clEmail').value=cl.email||'';
-  document.getElementById('clObs').value=cl.obs||'';
-  buildClEventosVinc(id);
-  document.getElementById('mCliente').classList.add('open');
-}
-function buildClEventosVinc(clId){
-  const unlinked=DB.eventos.filter(ev=>!ev.clienteId||ev.clienteId===clId);
-  document.getElementById('clEventosVinc').innerHTML=unlinked.map(ev=>{
-    const linked=ev.clienteId===clId;
-    return `<label class="check-pill ${linked?'checked':''}" onclick="this.classList.toggle('checked')" style="font-size:12px"><input type="hidden" data-evid="${ev.id}"> ${ev.nome}${ev.apelido?' ('+ev.apelido+')':''}</label>`;
-  }).join('')||'<span style="font-size:12px;color:var(--text-muted)">Todos os eventos já possuem cliente</span>';
-}
-function salvarCliente(){
-  const nome=document.getElementById('clNome').value.trim(); if(!nome){showToast('Informe o nome');return;}
-  const data={nome,contato:document.getElementById('clContato').value,tel:document.getElementById('clTel').value,email:document.getElementById('clEmail').value,obs:document.getElementById('clObs').value};
-  let clId;
-  if(_editClId){const cl=DB.clientes.find(c=>c.id===_editClId);Object.assign(cl,data);clId=_editClId;}
-  else{data.id='cl'+Date.now();DB.clientes.push(data);clId=data.id;}
-  // Link events
-  const sel=[...document.querySelectorAll('#clEventosVinc .check-pill.checked input')].map(i=>i.dataset.evid);
-  DB.eventos.forEach(ev=>{if(sel.includes(ev.id)) ev.clienteId=clId;else if(ev.clienteId===clId&&!sel.includes(ev.id)) ev.clienteId=null;});
-  persist();closeModal('mCliente');renderClientes();showToast('Cliente salvo!');
-}
-function delCliente(id){if(!confirm('Remover?'))return;DB.clientes=DB.clientes.filter(c=>c.id!==id);persist();renderClientes();showToast('Removido');}
+function openModalCliente(){_editClId=null;document.getElementById('mClienteTitle').textContent='Novo Cliente';['clNome','clContato','clTel','clEmail','clObs'].forEach(id=>document.getElementById(id).value='');buildClEventosVinc(null);document.getElementById('mCliente').classList.add('open');}
+function editCliente(id){const cl=DB.clientes.find(c=>c.id===id);if(!cl)return;_editClId=id;document.getElementById('mClienteTitle').textContent='Editar Cliente';document.getElementById('clNome').value=cl.nome||'';document.getElementById('clContato').value=cl.contato||'';document.getElementById('clTel').value=cl.tel||'';document.getElementById('clEmail').value=cl.email||'';document.getElementById('clObs').value=cl.obs||'';buildClEventosVinc(id);document.getElementById('mCliente').classList.add('open');}
+function buildClEventosVinc(clId){const evs=DB.eventos.filter(ev=>!ev.clienteId||ev.clienteId===clId);document.getElementById('clEventosVinc').innerHTML=evs.map(ev=>{const linked=ev.clienteId===clId;return`<label class="check-pill ${linked?'checked':''}" onclick="this.classList.toggle('checked')" style="font-size:12px"><input type="hidden" data-evid="${ev.id}"> ${ev.nome}${ev.apelido?' ('+ev.apelido+')':''}</label>`;}).join('')||`<span style="font-size:12px;color:var(--text-muted)">Todos os eventos já possuem cliente</span>`;}
+function salvarCliente(){const nome=document.getElementById('clNome').value.trim();if(!nome){showToast('Informe o nome');return;}const data={nome,contato:document.getElementById('clContato').value,tel:document.getElementById('clTel').value,email:document.getElementById('clEmail').value,obs:document.getElementById('clObs').value};let clId;if(_editClId){const cl=DB.clientes.find(c=>c.id===_editClId);Object.assign(cl,data);clId=_editClId;}else{data.id='cl'+Date.now();DB.clientes.push(data);clId=data.id;}const sel=[...document.querySelectorAll('#clEventosVinc .check-pill.checked input')].map(i=>i.dataset.evid);DB.eventos.forEach(ev=>{if(sel.includes(ev.id))ev.clienteId=clId;else if(ev.clienteId===clId&&!sel.includes(ev.id))ev.clienteId=null;});persist();closeModal('mCliente');renderClientes();showToast('Cliente salvo!');}
+function delCliente(id){if(!confirm('Remover cliente?'))return;DB.clientes=DB.clientes.filter(c=>c.id!==id);persist();renderClientes();}
 
 // =============================================
 // CONFIGURAÇÕES
@@ -1356,40 +1797,21 @@ function renderConfig(){
   document.getElementById('cfgAlertDays').value=DB.config.alertDays||7;
   document.getElementById('cfgPopup').checked=DB.config.popup!==false;
   document.getElementById('cfgAutoHoly').checked=DB.config.autoHoly!==false;
+  document.getElementById('cfgTrashDays').value=DB.config.trashDays||30;
   document.getElementById('usersConfig').innerHTML=DB.users.map((u,i)=>`
     <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--dark3);border-radius:var(--radius-sm);margin-bottom:6px">
       <div><div style="font-weight:600;font-size:13px">${u.name||u.user}</div><div style="font-size:11px;color:var(--text-muted)">@${u.user}</div></div>
       ${DB.users.length>1?`<button class="btn btn-danger btn-sm" onclick="delUser(${i})">Remover</button>`:'<span style="font-size:11px;color:var(--text-muted)">Admin</span>'}
     </div>`).join('');
 }
-function saveCfg(){
-  DB.config.alertDays=parseInt(document.getElementById('cfgAlertDays').value)||7;
-  DB.config.popup=document.getElementById('cfgPopup').checked;
-  DB.config.autoHoly=document.getElementById('cfgAutoHoly').checked;
-  persist();
-}
+function saveCfg(){DB.config.alertDays=parseInt(document.getElementById('cfgAlertDays').value)||7;DB.config.popup=document.getElementById('cfgPopup').checked;DB.config.autoHoly=document.getElementById('cfgAutoHoly').checked;DB.config.trashDays=parseInt(document.getElementById('cfgTrashDays').value)||30;persist();}
 function openAddUser(){document.getElementById('newUserName').value='';document.getElementById('newUserPass').value='';document.getElementById('mAddUser').classList.add('open');}
-function addUser(){
-  const u=document.getElementById('newUserName').value.trim();
-  const p=document.getElementById('newUserPass').value;
-  if(!u||!p){showToast('Preencha usuário e senha');return;}
-  if(DB.users.find(x=>x.user===u)){showToast('Usuário já existe');return;}
-  DB.users.push({user:u,pass:p,name:u});
-  persist();closeModal('mAddUser');renderConfig();showToast('Usuário adicionado!');
-}
-function delUser(i){
-  if(DB.users[i].user===currentUser.user){showToast('Não pode remover o usuário atual');return;}
-  if(!confirm('Remover este usuário?'))return;
-  DB.users.splice(i,1);persist();renderConfig();showToast('Usuário removido');
-}
+function addUser(){const u=document.getElementById('newUserName').value.trim();const p=document.getElementById('newUserPass').value;if(!u||!p){showToast('Preencha usuário e senha');return;}if(DB.users.find(x=>x.user===u)){showToast('Usuário já existe');return;}DB.users.push({user:u,pass:p,name:u});persist();closeModal('mAddUser');renderConfig();showToast('Usuário adicionado!');}
+function delUser(i){if(DB.users[i].user===currentUser.user){showToast('Não pode remover o usuário atual');return;}if(!confirm('Remover?'))return;DB.users.splice(i,1);persist();renderConfig();}
 
 // =============================================
-// HELPERS
+// MODAL / POPUP CLOSE
 // =============================================
-function closeModal(id){document.getElementById(id).classList.remove('open');}
-function closePopup(id){document.getElementById(id).classList.remove('open');}
-function fmtDate(s){if(!s)return'—';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`;}
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 document.querySelectorAll('.popup-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 
@@ -1398,12 +1820,9 @@ document.querySelectorAll('.popup-overlay').forEach(o=>o.addEventListener('click
 // =============================================
 /*
   PENDENTE - BACKEND NECESSÁRIO:
-  Implementar sistema de notificações externas (WhatsApp via Twilio/Z-API,
-  e-mail via SendGrid/Nodemailer, SMS via Twilio) para alertar administradores
-  sobre escalas incompletas próximas ao evento.
-  Gatilhos: dias configurados antes do evento (DB.config.alertDays)
-  Destinatários: todos os usuários cadastrados com telefone/email informado
-  Requer: servidor Node.js/Python + cron job diário
+  - Notificações WhatsApp/SMS/email para admins cadastrados
+  - Gatilho: dias configurados antes do evento (DB.config.alertDays)
+  - Requer: servidor Node.js + cron job diário
 */
 </script>
 </body>
