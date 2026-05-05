@@ -824,27 +824,33 @@ function autoArchiveCheck(){
     const inicio=ev.inicio?new Date(ev.inicio+'T00:00:00'):null;
     const fim=ev.fim?new Date(ev.fim+'T00:00:00'):null;
 
-    // Auto-restore: archived event with future start → reactivate
-    // Only if NOT manually closed and NOT has a past end date
-    if(['concluido','adiado'].includes(ev.status)&&inicio&&inicio>=today&&!ev.manuallyClosed){
-      // Only restore if fim is also future (or unset)
-      if(!fim||fim>=today){
-        ev.status='ativo';
-      }
-      // If fim is past but inicio is future: likely data entry error — keep archived, don't touch
-    }
-
-    // Auto-archive: active event whose end date passed AND start date also passed
-    if(ev.status==='ativo'&&fim&&fim<today&&inicio&&inicio<today){
-      ev.status='concluido';
-    }
-
-    // No start date → postponed
-    if(ev.status==='ativo'&&!ev.inicio){
+    // RULE 1: Active event with no start date → postponed
+    if(ev.status==='ativo'&&!inicio){
       ev.status='adiado';
+      return;
     }
 
-    // Trash expiry
+    // RULE 2: Active event where BOTH start AND end are in the past → concluded
+    // (requires both to have passed — a single past end doesn't conclude if start is future)
+    if(ev.status==='ativo'&&inicio&&inicio<today&&fim&&fim<today){
+      ev.status='concluido';
+      return;
+    }
+
+    // RULE 3: Auto-restore ONLY if:
+    // - was auto-archived (not manually closed by user)
+    // - start date is in the future (hasn't started yet)
+    // - end date is also future OR unset
+    if(['concluido','adiado'].includes(ev.status)&&!ev.manuallyClosed){
+      const startFuture=inicio&&inicio>=today;
+      const endFutureOrUnset=!fim||fim>=today;
+      if(startFuture&&endFutureOrUnset){
+        ev.status='ativo';
+        return;
+      }
+    }
+
+    // RULE 4: Trash expiry
     if(ev.status==='excluido'&&ev.deletedAt){
       const trashDays=DB.config.trashDays||30;
       const del=new Date(ev.deletedAt);
@@ -1465,28 +1471,48 @@ function confirmarNovaEdicao(){
 }
 
 function _aplicarSalvamentoEvento(data){
+  let savedEvId;
   if(_editEvId){
     const ev=DB.eventos.find(e=>e.id===_editEvId);
     Object.assign(ev,data);
+    savedEvId=_editEvId;
   } else {
     data.id='ev'+Date.now();
     data.escala={};
     data.vagasOverride={};
     data.horarioOverride={};
     DB.eventos.push(data);
+    savedEvId=data.id;
   }
   if(data.clienteId){
     const cl=DB.clientes.find(c=>c.id===data.clienteId);
     if(cl){
       if(!cl.eventos) cl.eventos=[];
-      const evId=_editEvId||data.id;
-      if(!cl.eventos.includes(evId)) cl.eventos.push(evId);
+      if(!cl.eventos.includes(savedEvId)) cl.eventos.push(savedEvId);
     }
   }
-  persist();
+  // Run autoArchiveCheck so status is correct before rendering
+  autoArchiveCheck();
   closeModal('mEvento');
+
+  // Find where the saved event ended up after archive check
+  const savedEv=DB.eventos.find(e=>e.id===savedEvId);
+  const isArchived=savedEv&&['concluido','cancelado','adiado','excluido'].includes(savedEv.status);
+
+  // Auto-expand archived section if event landed there
+  if(isArchived) _archivedVisible=true;
+
   renderEventos();
-  showToast('Evento salvo!');
+
+  // Scroll to the saved event card after render
+  requestAnimationFrame(()=>{
+    const card=document.querySelector(`[onclick*="${savedEvId}"], button[onclick*="editEvento('${savedEvId}')"]`);
+    if(card) card.closest('.event-card')?.scrollIntoView({behavior:'smooth',block:'center'});
+  });
+
+  // Toast with clear status info
+  const statusLabel=savedEv?` — status: ${EV_STATUS_LABEL[savedEv.status]||savedEv.status}`:'';
+  showToast(`Evento salvo!${statusLabel}`);
 }
 
 // =============================================
