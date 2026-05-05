@@ -447,6 +447,27 @@ textarea{resize:vertical;min-height:70px;}
   </div>
 </div>
 
+<!-- POPUP REATIVAR OU NOVA EDIÇÃO -->
+<div class="popup-overlay" id="popupReativar">
+  <div class="confirm-box" style="border-color:rgba(201,168,76,0.3);width:480px">
+    <div class="confirm-title" style="color:var(--gold)">📅 Evento com data futura detectado</div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
+      Este evento estava <strong id="reativarStatusLabel"></strong> mas a nova data de início é futura. Como deseja prosseguir?
+    </p>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
+      <button class="btn btn-gold" style="justify-content:flex-start;text-align:left;padding:14px 16px;height:auto;flex-direction:column;align-items:flex-start;gap:4px" onclick="confirmarReativar()">
+        <span style="font-weight:700">↺ Reativar este evento</span>
+        <span style="font-size:11px;font-weight:400;opacity:0.8">Atualiza as datas e restaura o status para Ativo. O histórico anterior é mantido.</span>
+      </button>
+      <button class="btn btn-outline" style="justify-content:flex-start;text-align:left;padding:14px 16px;height:auto;flex-direction:column;align-items:flex-start;gap:4px" onclick="confirmarNovaEdicao()">
+        <span style="font-weight:700">✦ Criar nova edição</span>
+        <span style="font-size:11px;font-weight:400;opacity:0.8">Mantém o evento original como histórico e cria um novo cadastro com as novas datas.</span>
+      </button>
+    </div>
+    <button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center" onclick="closePopup('popupReativar')">Cancelar</button>
+  </div>
+</div>
+
 <!-- MODAL EVENTO -->
 <div class="modal-overlay" id="mEvento">
   <div class="modal" style="width:660px">
@@ -457,9 +478,10 @@ textarea{resize:vertical;min-height:70px;}
         <div class="form-group"><label>Apelido/Sigla</label><input type="text" id="evApelido" placeholder="Ex: BS"></div>
       </div>
       <div class="form-row">
+        <div class="form-group"><label>Edição <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">(opcional)</span></label><input type="text" id="evEdicao" placeholder="Ex: 2026 · SP, Temporada Verão, 3ª Edição..."></div>
         <div class="form-group"><label>Cliente *</label><select id="evCliente"><option value="">— Selecionar cliente —</option></select></div>
-        <div class="form-group"><label>Status</label><select id="evStatus"><option value="ativo">Ativo</option><option value="adiado">Adiado sem previsão</option><option value="cancelado">Cancelado</option></select></div>
       </div>
+      <div class="form-group"><label>Status</label><select id="evStatus"><option value="ativo">Ativo</option><option value="adiado">Adiado sem previsão</option><option value="cancelado">Cancelado</option></select></div>
       <div class="form-row">
         <div class="form-group"><label>Data Início *</label><input type="date" id="evInicio"></div>
         <div class="form-group"><label>Data Fim</label><input type="date" id="evFim"></div>
@@ -720,13 +742,24 @@ let _archivedVisible=false;
 function autoArchiveCheck(){
   const today=new Date(); today.setHours(0,0,0,0);
   DB.eventos.forEach(ev=>{
-    if(ev.status==='ativo'&&ev.fim){
-      const end=new Date(ev.fim+'T00:00:00');
-      // Only archive the day AFTER the last day (end < today, not <=)
-      if(end<today) ev.status='concluido';
+    const inicio=ev.inicio?new Date(ev.inicio+'T00:00:00'):null;
+    const fim=ev.fim?new Date(ev.fim+'T00:00:00'):null;
+
+    // Auto-restore: if event was auto-archived (concluido/adiado) but now has a future start date, reactivate
+    if(['concluido','adiado'].includes(ev.status)&&inicio&&inicio>=today&&!ev.manuallyClosed){
+      ev.status='ativo';
     }
-    // Remove start date → archive
-    if(ev.status==='ativo'&&!ev.inicio) ev.status='adiado';
+
+    // Auto-archive: active event whose end date has fully passed
+    if(ev.status==='ativo'&&fim&&fim<today){
+      ev.status='concluido';
+    }
+
+    // No start date → postponed
+    if(ev.status==='ativo'&&!ev.inicio){
+      ev.status='adiado';
+    }
+
     // Trash expiry
     if(ev.status==='excluido'&&ev.deletedAt){
       const trashDays=DB.config.trashDays||30;
@@ -1051,9 +1084,10 @@ function evCard(ev,archived=false){
   const statusCss=EV_STATUS_CSS[ev.status]||'status-ativo';
   const statusLbl=EV_STATUS_LABEL[ev.status]||ev.status;
   const trashInfo=ev.status==='excluido'&&ev.deletedAt?`<div style="font-size:11px;color:var(--red);margin-top:4px">Excluído em ${fmtDate(ev.deletedAt.split('T')[0])} — será removido permanentemente após ${DB.config.trashDays||30} dias</div>`:'';
+  const nomeCompleto=ev.edicao?`${ev.nome} <span style="font-size:13px;color:var(--text-muted);font-weight:400">— ${ev.edicao}</span>`:ev.nome;
   return`<div class="event-card ${archived?'archived':''}" style="opacity:${archived?0.7:1}">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
-      <div class="event-name">${ev.nome}</div>
+      <div class="event-name">${nomeCompleto}</div>
       <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">
         ${ev.apelido?`<span class="badge badge-gold" style="font-size:10px">${ev.apelido}</span>`:''}
         <span class="status-badge ${statusCss}">${statusLbl}</span>
@@ -1126,7 +1160,7 @@ function renderDiasEspeciais(){
 function openModalEvento(){
   _editEvId=null; _evCidades=[]; _evDiasEspeciais=[];
   document.getElementById('mEventoTitle').textContent='Novo Evento';
-  ['evNome','evApelido','evObs'].forEach(id=>document.getElementById(id).value='');
+  ['evNome','evApelido','evEdicao','evObs'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('evInicio').value=''; document.getElementById('evFim').value='';
   document.getElementById('evHorarioInicio').value=''; document.getElementById('evHorarioFim').value='';
   document.getElementById('evPublicoDia').value=''; document.getElementById('evPublicoTotal').value='';
@@ -1144,6 +1178,7 @@ function editEvento(id){
   document.getElementById('mEventoTitle').textContent='Editar Evento';
   document.getElementById('evNome').value=ev.nome||'';
   document.getElementById('evApelido').value=ev.apelido||'';
+  document.getElementById('evEdicao').value=ev.edicao||'';
   document.getElementById('evInicio').value=ev.inicio||'';
   document.getElementById('evFim').value=ev.fim||'';
   document.getElementById('evHorarioInicio').value=ev.horarioInicio||'';
@@ -1172,7 +1207,10 @@ function arquivarEvento(id,status){
   showConfirm(
     status==='cancelado'?'Cancelar Evento':'Arquivar Evento',
     `Isso moverá o evento para a seção de arquivados com status "${EV_STATUS_LABEL[status]}". Ele não aparecerá mais no dashboard.`,
-    ()=>{const ev=DB.eventos.find(e=>e.id===id);if(ev){ev.status=status;persist();renderEventos();showToast('Evento arquivado.');}}
+    ()=>{
+      const ev=DB.eventos.find(e=>e.id===id);
+      if(ev){ev.status=status;ev.manuallyClosed=true;persist();renderEventos();showToast('Evento arquivado.');}
+    }
   );
 }
 
@@ -1191,8 +1229,17 @@ function excluirEvento(id){
 
 function restaurarEvento(id){
   const ev=DB.eventos.find(e=>e.id===id); if(!ev) return;
-  ev.status='ativo'; delete ev.deletedAt;
+  ev.status='ativo'; delete ev.deletedAt; delete ev.manuallyClosed;
   persist(); renderEventos(); showToast('Evento restaurado!');
+}
+
+function confirmarReativar(){
+  closePopup('popupReativar');
+  if(!_pendingSaveData) return;
+  _pendingSaveData.status='ativo';
+  delete _pendingSaveData.manuallyClosed;
+  _aplicarSalvamentoEvento(_pendingSaveData);
+  _pendingSaveData=null;
 }
 
 function buildClienteSelectEl(elId,sel){
@@ -1216,6 +1263,9 @@ function buildEvSegs(sm){
   }).join('');
 }
 
+// Pending save data used by reativar/nova edição popup
+let _pendingSaveData=null;
+
 function salvarEvento(){
   const nome=document.getElementById('evNome').value.trim();
   const clienteId=document.getElementById('evCliente').value;
@@ -1230,16 +1280,95 @@ function salvarEvento(){
 
   const dias=[...document.querySelectorAll('#evDias .check-pill.checked')].map(el=>parseInt(el.querySelector('input').dataset.val));
   const segConfig=DB.segmentos.filter(seg=>document.getElementById('evSeg_'+seg.id)?.checked).map(seg=>({segId:seg.id,vagas:parseInt(document.getElementById('evSegV_'+seg.id)?.value)||0}));
-  const data={nome,apelido:document.getElementById('evApelido').value,clienteId,status:document.getElementById('evStatus').value,inicio,fim:document.getElementById('evFim').value,horarioInicio:document.getElementById('evHorarioInicio').value,horarioFim:document.getElementById('evHorarioFim').value,publicoDia:parseInt(document.getElementById('evPublicoDia').value)||0,dias,diasEspeciais:[..._evDiasEspeciais],cidades,obs:document.getElementById('evObs').value,segmentosConfig:segConfig};
 
-  // If no inicio → archive
+  const data={
+    nome,
+    edicao:document.getElementById('evEdicao').value.trim(),
+    apelido:document.getElementById('evApelido').value,
+    clienteId,
+    status:document.getElementById('evStatus').value,
+    inicio,
+    fim:document.getElementById('evFim').value,
+    horarioInicio:document.getElementById('evHorarioInicio').value,
+    horarioFim:document.getElementById('evHorarioFim').value,
+    publicoDia:parseInt(document.getElementById('evPublicoDia').value)||0,
+    dias,
+    diasEspeciais:[..._evDiasEspeciais],
+    cidades,
+    obs:document.getElementById('evObs').value,
+    segmentosConfig:segConfig
+  };
+
   if(!data.inicio) data.status='adiado';
 
-  if(_editEvId){const ev=DB.eventos.find(e=>e.id===_editEvId);Object.assign(ev,data);}
-  else{data.id='ev'+Date.now();data.escala={};data.vagasOverride={};data.horarioOverride={};DB.eventos.push(data);}
-  // Link client
-  if(data.clienteId){const cl=DB.clientes.find(c=>c.id===data.clienteId);if(cl){if(!cl.eventos)cl.eventos=[];const evId=_editEvId||data.id;if(!cl.eventos.includes(evId))cl.eventos.push(evId);}}
-  persist();closeModal('mEvento');renderEventos();showToast('Evento salvo!');
+  // Check if editing an archived event with a future start date
+  if(_editEvId){
+    const existingEv=DB.eventos.find(e=>e.id===_editEvId);
+    const wasArchived=['concluido','cancelado','adiado'].includes(existingEv?.status);
+    const today=new Date(); today.setHours(0,0,0,0);
+    const newStart=new Date(data.inicio+'T00:00:00');
+    if(wasArchived&&newStart>=today&&data.status!=='cancelado'){
+      _pendingSaveData=data;
+      document.getElementById('reativarStatusLabel').textContent=EV_STATUS_LABEL[existingEv.status]||existingEv.status;
+      closeModal('mEvento');
+      document.getElementById('popupReativar').classList.add('open');
+      return;
+    }
+  }
+
+  _aplicarSalvamentoEvento(data);
+}
+
+function confirmarNovaEdicao(){
+  closePopup('popupReativar');
+  if(!_pendingSaveData) return;
+  // Create new event, keep original unchanged
+  const newData={..._pendingSaveData};
+  newData.id='ev'+Date.now();
+  newData.status='ativo';
+  newData.escala={};
+  newData.vagasOverride={};
+  newData.horarioOverride={};
+  // Pre-fill edição if empty
+  if(!newData.edicao){
+    const year=new Date(newData.inicio+'T00:00:00').getFullYear();
+    newData.edicao=String(year);
+  }
+  DB.eventos.push(newData);
+  // Link to client
+  if(newData.clienteId){
+    const cl=DB.clientes.find(c=>c.id===newData.clienteId);
+    if(cl){if(!cl.eventos)cl.eventos=[];if(!cl.eventos.includes(newData.id))cl.eventos.push(newData.id);}
+  }
+  persist();
+  renderEventos();
+  showToast(`Nova edição "${newData.nome}${newData.edicao?' — '+newData.edicao:''}" criada!`);
+  _pendingSaveData=null;
+}
+
+function _aplicarSalvamentoEvento(data){
+  if(_editEvId){
+    const ev=DB.eventos.find(e=>e.id===_editEvId);
+    Object.assign(ev,data);
+  } else {
+    data.id='ev'+Date.now();
+    data.escala={};
+    data.vagasOverride={};
+    data.horarioOverride={};
+    DB.eventos.push(data);
+  }
+  if(data.clienteId){
+    const cl=DB.clientes.find(c=>c.id===data.clienteId);
+    if(cl){
+      if(!cl.eventos) cl.eventos=[];
+      const evId=_editEvId||data.id;
+      if(!cl.eventos.includes(evId)) cl.eventos.push(evId);
+    }
+  }
+  persist();
+  closeModal('mEvento');
+  renderEventos();
+  showToast('Evento salvo!');
 }
 
 // =============================================
