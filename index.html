@@ -476,9 +476,9 @@ textarea{resize:vertical;min-height:70px;}
 <!-- POPUP REATIVAR OU NOVA EDIÇÃO -->
 <div class="popup-overlay" id="popupReativar">
   <div class="confirm-box" style="border-color:rgba(223,178,80,0.3);width:480px">
-    <div class="confirm-title" style="color:var(--gold)">📅 Evento com data futura detectado</div>
+    <div class="confirm-title" style="color:var(--gold)">📅 Evento arquivado com novas datas</div>
     <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
-      Este evento estava <strong id="reativarStatusLabel"></strong> mas a nova data de início é futura. Como deseja prosseguir?
+      Este evento estava <strong id="reativarStatusLabel"></strong> mas as novas datas indicam que ele está em andamento ou tem previsão futura. Como deseja prosseguir?
     </p>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
       <button class="btn btn-gold" style="justify-content:flex-start;text-align:left;padding:14px 16px;height:auto;flex-direction:column;align-items:flex-start;gap:4px" onclick="confirmarReativar()">
@@ -507,7 +507,7 @@ textarea{resize:vertical;min-height:70px;}
         <div class="form-group"><label>Edição <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">(opcional)</span></label><input type="text" id="evEdicao" placeholder="Ex: 2026 · SP, Temporada Verão, 3ª Edição..."></div>
         <div class="form-group"><label>Cliente *</label><select id="evCliente"><option value="">— Selecionar cliente —</option></select></div>
       </div>
-      <div class="form-group"><label>Status</label><select id="evStatus"><option value="ativo">Ativo</option><option value="adiado">Adiado sem previsão</option><option value="cancelado">Cancelado</option></select></div>
+      <div class="form-group"><label>Status</label><select id="evStatus"><option value="ativo">Ativo</option><option value="adiado">Adiado sem previsão</option><option value="cancelado">Cancelado</option><option value="concluido" disabled style="color:var(--text-muted)">Concluído (automático)</option></select></div>
       <div class="form-row">
         <div class="form-group"><label>Data Início *</label><input type="date" id="evInicio" onchange="validarDatasEvento()"></div>
         <div class="form-group"><label>Data Fim</label><input type="date" id="evFim" onchange="validarDatasEvento()"></div>
@@ -820,45 +820,55 @@ let _archivedVisible=false;
 // =============================================
 function autoArchiveCheck(){
   const today=new Date(); today.setHours(0,0,0,0);
+  console.group('🔍 autoArchiveCheck — '+today.toISOString().split('T')[0]);
   DB.eventos.forEach(ev=>{
     const inicio=ev.inicio?new Date(ev.inicio+'T00:00:00'):null;
     const fim=ev.fim?new Date(ev.fim+'T00:00:00'):null;
+    const before=ev.status;
+    let rule='';
 
     // RULE 1: Active event with no start date → postponed
     if(ev.status==='ativo'&&!inicio){
       ev.status='adiado';
-      return;
+      rule='R1: ativo sem início → adiado';
     }
-
     // RULE 2: Active event where BOTH start AND end are in the past → concluded
-    // (requires both to have passed — a single past end doesn't conclude if start is future)
-    if(ev.status==='ativo'&&inicio&&inicio<today&&fim&&fim<today){
+    else if(ev.status==='ativo'&&inicio&&inicio<today&&fim&&fim<today){
       ev.status='concluido';
-      return;
+      rule='R2: ativo + início+fim passados → concluído';
     }
-
-    // RULE 3: Auto-restore ONLY if:
-    // - was auto-archived (not manually closed by user)
-    // - start date is in the future (hasn't started yet)
-    // - end date is also future OR unset
-    if(['concluido','adiado'].includes(ev.status)&&!ev.manuallyClosed){
+    // RULE 3: Auto-restore archived event with future start
+    else if(['concluido','adiado'].includes(ev.status)&&!ev.manuallyClosed){
       const startFuture=inicio&&inicio>=today;
       const endFutureOrUnset=!fim||fim>=today;
       if(startFuture&&endFutureOrUnset){
         ev.status='ativo';
-        return;
+        rule='R3: arquivado + início futuro + fim futuro/unset → ativo';
+      } else {
+        rule=`R3 não aplicada (startFuture=${startFuture}, endFutureOrUnset=${endFutureOrUnset})`;
       }
     }
-
     // RULE 4: Trash expiry
-    if(ev.status==='excluido'&&ev.deletedAt){
+    else if(ev.status==='excluido'&&ev.deletedAt){
       const trashDays=DB.config.trashDays||30;
       const del=new Date(ev.deletedAt);
       const diff=(today-del)/(1000*60*60*24);
-      if(diff>trashDays) ev.status='excluido_permanente';
+      if(diff>trashDays){ev.status='excluido_permanente';rule='R4: excluído expirado → permanente';}
     }
+
+    console.log(
+      `[${ev.nome}]`,
+      `${before}${ev.status!==before?' → '+ev.status:''}`,
+      `| início=${ev.inicio||'∅'}`,
+      `fim=${ev.fim||'∅'}`,
+      `manualClose=${!!ev.manuallyClosed}`,
+      rule?`| ${rule}`:''
+    );
   });
+  const removed=DB.eventos.filter(ev=>ev.status==='excluido_permanente').length;
   DB.eventos=DB.eventos.filter(ev=>ev.status!=='excluido_permanente');
+  if(removed) console.log(`Removidos ${removed} evento(s) excluído(s) permanentemente`);
+  console.groupEnd();
   persist();
 }
 
@@ -1160,16 +1170,22 @@ function renderDashboard(){
 function renderEventos(){
   const activeEvs=sortEventos(DB.eventos.filter(isActive));
   const archivedEvs=DB.eventos.filter(isArchived);
+  console.log(`📋 renderEventos: ${DB.eventos.length} total, ${activeEvs.length} ativos, ${archivedEvs.length} arquivados`);
+  console.log('  Ativos:',activeEvs.map(e=>`${e.nome}(${e.status})`).join(', ')||'∅');
+  console.log('  Arquivados:',archivedEvs.map(e=>`${e.nome}(${e.status})`).join(', ')||'∅');
 
   document.getElementById('eventsGridActive').innerHTML=activeEvs.length
     ?activeEvs.map(evCard).join('')
     :`<div style="color:var(--text-muted);padding:40px;text-align:center">Nenhum evento ativo</div>`;
 
-  document.getElementById('eventsGridArchived').innerHTML=archivedEvs.length
-    ?`<div class="events-grid">`+archivedEvs.map(ev=>evCard(ev,true)).join('')+'</div>'
-    :`<div style="color:var(--text-muted);padding:20px;text-align:center;font-size:13px">Nenhum evento arquivado</div>`;
-
-  document.getElementById('archivedSection').style.display=archivedEvs.length?'block':'none';
+  if(archivedEvs.length){
+    document.getElementById('archivedSection').style.display='block';
+    document.getElementById('eventsGridArchived').innerHTML=`<div class="events-grid">`+archivedEvs.map(ev=>evCard(ev,true)).join('')+'</div>';
+    document.getElementById('eventsGridArchived').style.display=_archivedVisible?'block':'none';
+    document.getElementById('archivedToggleIcon').textContent=_archivedVisible?'▲ ocultar':'▼ mostrar';
+  } else {
+    document.getElementById('archivedSection').style.display='none';
+  }
 }
 
 function evCard(ev,archived=false){
@@ -1425,18 +1441,42 @@ function salvarEvento(){
 
   if(!data.inicio) data.status='adiado';
 
-  // Check if editing an archived event with a future start date
+  // Fix: if the select returned empty/invalid (e.g. 'concluido' was selected but disabled),
+  // fall back to the existing status to avoid wiping it
+  const validStatuses=['ativo','adiado','cancelado','concluido','excluido'];
+  if(!validStatuses.includes(data.status)){
+    if(_editEvId){
+      const existingEv=DB.eventos.find(e=>e.id===_editEvId);
+      data.status=existingEv?.status||'ativo';
+    } else {
+      data.status='ativo';
+    }
+  }
+
+  const today2=new Date(); today2.setHours(0,0,0,0);
+  const newStart=data.inicio?new Date(data.inicio+'T00:00:00'):null;
+  const newEnd=data.fim?new Date(data.fim+'T00:00:00'):null;
+
+  // Determine if the new date range means the event is "active" 
+  // (either fully future, or currently in progress = start past but end future)
+  const eventIsCurrentOrFuture=newEnd&&newEnd>=today2; // fim ainda não passou
+
   if(_editEvId){
     const existingEv=DB.eventos.find(e=>e.id===_editEvId);
     const wasArchived=['concluido','cancelado','adiado'].includes(existingEv?.status);
-    const today=new Date(); today.setHours(0,0,0,0);
-    const newStart=new Date(data.inicio+'T00:00:00');
-    if(wasArchived&&newStart>=today&&data.status!=='cancelado'){
-      _pendingSaveData=data;
-      document.getElementById('reativarStatusLabel').textContent=EV_STATUS_LABEL[existingEv.status]||existingEv.status;
-      closeModal('mEvento');
-      document.getElementById('popupReativar').classList.add('open');
-      return;
+
+    if(wasArchived&&data.status!=='cancelado'){
+      if(eventIsCurrentOrFuture){
+        // Fim futuro (início pode ser passado ou futuro) → popup reativar/nova edição
+        _pendingSaveData=data;
+        document.getElementById('reativarStatusLabel').textContent=EV_STATUS_LABEL[existingEv.status]||existingEv.status;
+        closeModal('mEvento');
+        document.getElementById('popupReativar').classList.add('open');
+        return;
+      } else {
+        // Início e fim ambos no passado → preserva concluido, salva direto sem popup
+        data.status='concluido';
+      }
     }
   }
 
@@ -2139,8 +2179,17 @@ document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click
 document.querySelectorAll('.popup-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 
 // =============================================
-// NOTA FUTURA: NOTIFICAÇÕES EXTERNAS
+// DEBUG HELPERS (acesse via console do navegador)
 // =============================================
+window.holyDebug={
+  status:()=>DB.eventos.map(ev=>({
+    id:ev.id,nome:ev.nome,status:ev.status,
+    inicio:ev.inicio,fim:ev.fim,manuallyClosed:ev.manuallyClosed||false
+  })),
+  forceRender:()=>{renderEventos();console.log('Rendered. Archived visible:',_archivedVisible);},
+  showAll:()=>{_archivedVisible=true;renderEventos();},
+  resetDB:()=>{if(confirm('Resetar DB para padrão?')){localStorage.removeItem('holy_v4');location.reload();}},
+};
 /*
   PENDENTE - BACKEND NECESSÁRIO:
   - Notificações WhatsApp/SMS/email para admins cadastrados
