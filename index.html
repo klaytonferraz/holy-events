@@ -587,7 +587,6 @@ textarea{resize:vertical;min-height:70px;}
     <div class="modal-body">
       <div class="form-group"><label>Nome *</label><input type="text" id="segNome"></div>
       <div class="form-row"><div class="form-group"><label>Emoji</label><input type="text" id="segIcone" maxlength="4" placeholder="🍔"></div><div class="form-group"><label>Cor</label><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px" id="segCores"></div></div></div>
-      <div class="form-group"><label style="text-transform:none;letter-spacing:0;font-size:13px;font-weight:normal"><input type="checkbox" id="segIsHoly" style="width:auto;background:transparent;border:none;padding:0;accent-color:var(--gold);margin-right:8px"> Operação própria da Holy</label></div>
     </div>
     <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('mSeg')">Cancelar</button><button class="btn btn-gold" onclick="salvarSeg()">Salvar</button></div>
   </div>
@@ -699,7 +698,7 @@ const EV_STATUS_LABEL={ativo:'Ativo',concluido:'Concluído',cancelado:'Cancelado
 // =============================================
 // DATABASE
 // =============================================
-const DB_VERSION=4; // Bump this when schema changes to trigger auto-migration
+const DB_VERSION=8; // v8: escala uses [{id,segId},...] slot format
 
 function loadDB(){
   try{
@@ -725,15 +724,35 @@ function migrateDB(old){
   if(old.config) fresh.config={...fresh.config,...old.config};
   if(old.clientes&&old.clientes.length) fresh.clientes=old.clientes;
   if(old.segmentos&&old.segmentos.length) fresh.segmentos=old.segmentos;
-  // Migrate operadores — add capacidade if missing
+  // Migrate operadores — add capacidade if missing, remove seg5 from Holy Drinks
   if(old.operadores&&old.operadores.length){
-    fresh.operadores=old.operadores.map(op=>({capacidade:1,...op}));
+    fresh.operadores=old.operadores.map(op=>({
+      capacidade:1,
+      ...op,
+      segmentos:(op.segmentos||[])
+        .filter(s=>s!=='seg5')
+        .concat(op.segmentos?.includes('seg5')&&!op.segmentos?.includes('seg2')?['seg2']:[]),
+      // Set Holy Drinks to capacidade 6
+      ...(op.isHoly?{capacidade:6}:{})
+    }));
   }
-  // Migrate eventos — add diasEspeciais, edicao if missing
+  // Migrate segmentos — remove seg5
+  if(old.segmentos&&old.segmentos.length){
+    fresh.segmentos=old.segmentos.filter(s=>s.id!=='seg5');
+    // Keep any custom segments the user may have added
+    old.segmentos.filter(s=>s.id!=='seg5'&&!fresh.segmentos.find(fs=>fs.id===s.id)).forEach(s=>fresh.segmentos.push(s));
+    fresh.segmentos=old.segmentos.filter(s=>s.id!=='seg5');
+  }
+  // Migrate eventos — remove seg5 from segmentosConfig
   if(old.eventos&&old.eventos.length){
     fresh.eventos=old.eventos.map(ev=>({
       diasEspeciais:[],edicao:'',horarioOverride:{},vagasOverride:{},
       ...ev,
+      segmentosConfig:(ev.segmentosConfig||[]).filter(sc=>sc.segId!=='seg5').map(sc=>{
+        // Add holyVagas=1 default to seg2 if missing
+        if(sc.segId==='seg2'&&sc.holyVagas===undefined) return{...sc,holyVagas:1};
+        return sc;
+      })
     }));
   }
   fresh._version=DB_VERSION;
@@ -758,7 +777,6 @@ function defaultDB(){
       {id:'seg2',nome:'Bebidas',icone:'🍷',cor:'#5290E0',isHoly:false},
       {id:'seg3',nome:'Sobremesa',icone:'🍰',cor:'#A07AF0',isHoly:false},
       {id:'seg4',nome:'Snacks',icone:'🍿',cor:'#4CAF7C',isHoly:false},
-      {id:'seg5',nome:'Operação Própria',icone:'✦',cor:'#DFB250',isHoly:true},
     ],
     clientes:[{id:'cl1',nome:'Fever',contato:'',tel:'',email:'',obs:'Organizadora de eventos'}],
     operadores:defaultOperadores(),
@@ -768,7 +786,7 @@ function defaultDB(){
 
 function defaultOperadores(){
   return[
-    {id:1,nome:'Holy Drinks',produto:'Soft Drinks, Drinks, Espumantes, Vinhos',poc:'Claudio Ferraz',tel:'11 949828444',insta:'',tipo:'Tenda',segmentos:['seg5','seg2'],status:'Contratado',cidades:'São Paulo, Porto Alegre, Curitiba',carga:'',volt:'',dim:'',obs:'',isHoly:true},
+    {id:1,nome:'Holy Drinks',produto:'Soft Drinks, Drinks, Espumantes, Vinhos',poc:'Claudio Ferraz',tel:'11 949828444',insta:'',tipo:'Tenda',segmentos:['seg2'],status:'Contratado',cidades:'São Paulo, Porto Alegre, Curitiba',carga:'',volt:'',dim:'',obs:'',isHoly:true,capacidade:6},
     {id:2,nome:'Porto do BBQ',produto:'American BBQ',poc:'Leandro',tel:'11 97173-7438',insta:'@portodobbq',tipo:'Pit Smoker',segmentos:['seg1'],status:'Contratado',cidades:'São Paulo, Curitiba, Porto Alegre',carga:'',volt:'',dim:'',obs:''},
     {id:3,nome:'Yaki Fry',produto:'Japonesa, Poke, Yakssoba',poc:'Eduardo Tamashiro',tel:'11 94718-6322',insta:'@yakifryfoodtruck',tipo:'Truck',segmentos:['seg1'],status:'Contratado',cidades:'São Paulo, Porto Alegre, Curitiba',carga:'12',volt:'',dim:'',obs:''},
     {id:4,nome:'Asato Foods',produto:'Pastel, Crepe no Palito',poc:'Bitcho',tel:'11 99653-0434',insta:'',tipo:'Trailer',segmentos:['seg1','seg4'],status:'Contratado',cidades:'São Paulo, Curitiba',carga:'8',volt:'',dim:'',obs:''},
@@ -798,8 +816,8 @@ function defaultOperadores(){
 
 function defaultEventos(){
   return[
-    {id:'ev1',nome:'Drone Art Show',apelido:'DAS',clienteId:'cl1',status:'concluido',inicio:'2025-03-01',fim:'2025-04-30',dias:[5,6,0],horarioInicio:'18:00',horarioFim:'23:00',publicoDia:800,cidades:['São Paulo','Porto Alegre','Curitiba'],obs:'Evento encerrado',segmentosConfig:[{segId:'seg1',vagas:10},{segId:'seg2',vagas:3},{segId:'seg3',vagas:3},{segId:'seg4',vagas:3},{segId:'seg5',vagas:1}],escala:{},vagasOverride:{},horarioOverride:{}},
-    {id:'ev2',nome:'Brilha Sonhos',apelido:'BS',clienteId:'cl1',status:'ativo',inicio:'2025-05-20',fim:'2025-09-27',dias:[3,4,5,6,0],horarioInicio:'17:00',horarioFim:'22:00',publicoDia:500,cidades:['São Paulo'],obs:'Datas a confirmar.',segmentosConfig:[{segId:'seg1',vagas:3},{segId:'seg2',vagas:3},{segId:'seg3',vagas:2},{segId:'seg4',vagas:2}],escala:{},vagasOverride:{},horarioOverride:{}}
+    {id:'ev1',nome:'Drone Art Show',apelido:'DAS',clienteId:'cl1',status:'concluido',inicio:'2025-03-01',fim:'2025-04-30',dias:[5,6,0],horarioInicio:'18:00',horarioFim:'23:00',publicoDia:800,cidades:['São Paulo','Porto Alegre','Curitiba'],obs:'Evento encerrado',segmentosConfig:[{segId:'seg1',vagas:10},{segId:'seg2',vagas:3},{segId:'seg3',vagas:3},{segId:'seg4',vagas:3}],escala:{},vagasOverride:{},horarioOverride:{}},
+    {id:'ev2',nome:'Brilha Sonhos',apelido:'BS',clienteId:'cl1',status:'ativo',inicio:'2026-05-15',fim:'2026-08-30',dias:[3,4,5,6,0],horarioInicio:'17:00',horarioFim:'22:00',publicoDia:3205,cidades:['São Paulo'],obs:'',segmentosConfig:[{segId:'seg1',vagas:3},{segId:'seg2',vagas:3,holyVagas:2},{segId:'seg3',vagas:2},{segId:'seg4',vagas:2}],escala:{},vagasOverride:{},horarioOverride:{}}
   ];
 }
 
@@ -1016,7 +1034,25 @@ function getDayVagasTotal(ev,dateKey,cid){
   }
   return getEvTotalVagas(ev);
 }
-// Alias used in alert status
+// Helper: get escala slots for a day, always returns [{id,segId},...] normalized
+function getSlots(ev,cid,dateKey){
+  const raw=((ev.escala[cid]||{})[dateKey]||[]);
+  if(!raw.length) return [];
+  if(typeof raw[0]==='object') return raw;
+  // legacy flat format — infer segId
+  return raw.map(opId=>{
+    const op=DB.operadores.find(o=>o.id===opId);
+    const evSegs=(ev.segmentosConfig||[]).map(sc=>sc.segId);
+    const segId=op?(op.segmentos||[]).find(s=>evSegs.includes(s))||'unknown':'unknown';
+    return {id:opId,segId};
+  });
+}
+
+// Helper: get unique operator IDs from slots (for display purposes)
+function getSlotOpIds(ev,cid,dateKey){
+  return getSlots(ev,cid,dateKey).map(s=>s.id);
+}
+
 function getDayVagasTotalByCid(ev,dateKey,cid){return getDayVagasTotal(ev,dateKey,cid);}
 
 function getDayAlertStatus(ev,dateKey,cid){
@@ -1024,7 +1060,7 @@ function getDayAlertStatus(ev,dateKey,cid){
   const day=new Date(dateKey+'T00:00:00');
   const daysUntil=Math.ceil((day-today)/(1000*60*60*24));
   const alertDays=DB.config.alertDays||7;
-  const opIds=((ev.escala[cid]||{})[dateKey]||[]);
+  const opIds=getSlotOpIds(ev,cid,dateKey);
   const totalV=getDayVagasTotal(ev,dateKey,cid);
   const filled=opIds.length;
   const hasOvr=!!(ev.vagasOverride&&ev.vagasOverride[cid]&&ev.vagasOverride[cid][dateKey]);
@@ -1056,7 +1092,7 @@ function getCriticalDays(ev){
         const dk=d.toISOString().split('T')[0];
         const daysUntil=Math.ceil((d-today)/(1000*60*60*24));
         if(daysUntil>=0&&daysUntil<=alertDays){
-          const opIds=((ev.escala[cid]||{})[dk]||[]);
+          const opIds=getSlotOpIds(ev,cid,dk);
           const totalV=getDayVagasTotal(ev,dk,cid);
           if(opIds.length<totalV) result.push({ev,dateKey:dk,cidade:cid,daysUntil,filled:opIds.length,total:totalV});
         }
@@ -1125,8 +1161,8 @@ function renderDashboard(){
       const dk=day.toISOString().split('T')[0];
       const isToday=day.getTime()===today.getTime();
       const cid=ev.cidades[0]||'';
-      const opIds=((ev.escala[cid]||{})[dk]||[]);
-      const ops=opIds.map(id=>DB.operadores.find(o=>o.id===id)).filter(Boolean);
+      const opIds=getSlotOpIds(ev,cid,dk);
+      const ops=[...new Set(opIds)].map(id=>DB.operadores.find(o=>o.id===id)).filter(Boolean);
       const totalV=getDayVagasTotal(ev,dk,cid);
       const al=getDayAlertStatus(ev,dk,cid);
       const evColor=DB.segmentos[0]?.cor||'#DFB250';
@@ -1378,16 +1414,47 @@ function buildDiasCheck(elId,sel){
 function addEvCidade(){const v=document.getElementById('evCidInput').value.trim();if(!v||_evCidades.includes(v))return;_evCidades.push(v);document.getElementById('evCidInput').value='';renderEvCidades();}
 function renderEvCidades(){document.getElementById('evCidList').innerHTML=_evCidades.map((c,i)=>`<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(223,178,80,0.1);border:1px solid rgba(223,178,80,0.25);border-radius:6px;font-size:12px;color:var(--gold)">${c}<button onclick="_evCidades.splice(${i},1);renderEvCidades()" style="background:none;border:none;color:var(--gold);cursor:pointer;padding:0;font-size:12px">×</button></span>`).join('');}
 function buildEvSegs(sm){
+  const holyOp=DB.operadores.find(o=>o.isHoly);
+  const holyMaxCap=holyOp?(holyOp.capacidade||1):1;
   document.getElementById('evSegs').innerHTML=DB.segmentos.map(seg=>{
     const sc=sm[seg.id]||{};
-    return`<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--dark3);border:1px solid rgba(255,255,255,0.05);border-radius:var(--radius-sm);margin-bottom:5px">
-      <input type="checkbox" id="evSeg_${seg.id}" ${sc.segId||sc.vagas?'checked':''} style="width:auto;accent-color:var(--gold)">
-      <span style="font-size:15px">${seg.icone}</span>
-      <span style="flex:1;font-size:13px;font-weight:600;color:${seg.cor}">${seg.nome}</span>
-      <label style="font-size:12px;color:var(--text-muted);text-transform:none;letter-spacing:0;margin:0">Vagas:</label>
-      <input type="number" id="evSegV_${seg.id}" value="${sc.vagas||0}" min="0" max="99" style="width:58px;text-align:center;padding:4px 8px">
+    const isBebidas=seg.id==='seg2';
+    const holyDefault=sc.holyVagas!==undefined?sc.holyVagas:1;
+    const vagasVal=sc.vagas||0;
+    return`<div style="display:flex;flex-direction:column;gap:6px;padding:9px 12px;background:var(--dark3);border:1px solid rgba(255,255,255,0.05);border-radius:var(--radius-sm);margin-bottom:5px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="checkbox" id="evSeg_${seg.id}" ${sc.segId||sc.vagas?'checked':''} style="width:auto;accent-color:var(--gold)" onchange="onEvSegToggle('${seg.id}')">
+        <span style="font-size:15px">${seg.icone}</span>
+        <span style="flex:1;font-size:13px;font-weight:600;color:${seg.cor}">${seg.nome}</span>
+        <label style="font-size:12px;color:var(--text-muted);text-transform:none;letter-spacing:0;margin:0">Vagas:</label>
+        <input type="number" id="evSegV_${seg.id}" value="${vagasVal}" min="0" max="99" style="width:58px;text-align:center;padding:4px 8px" onchange="${isBebidas?'updateHolyMax()':''}">
+      </div>
+      ${isBebidas&&holyOp?`<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(223,178,80,0.06);border:1px solid rgba(223,178,80,0.15);border-radius:6px;margin-left:26px">
+        <span style="font-size:12px">✦</span>
+        <span style="font-size:12px;color:var(--gold);flex:1">Holy Drinks — vagas padrão neste evento</span>
+        <input type="number" id="evHolyVagas" value="${holyDefault}" min="0" max="${Math.min(holyMaxCap,vagasVal||3)}" style="width:50px;text-align:center;padding:3px 6px;font-size:12px">
+        <span style="font-size:11px;color:var(--text-muted)">/ ${vagasVal} vagas · cap.×${holyMaxCap}</span>
+      </div>`:''}
     </div>`;
   }).join('');
+}
+
+function onEvSegToggle(segId){
+  // just trigger rebuild to keep holy field in sync — no-op for now
+}
+
+function updateHolyMax(){
+  const holyOp=DB.operadores.find(o=>o.isHoly);
+  if(!holyOp) return;
+  const vagasEl=document.getElementById('evSegV_seg2');
+  const holyEl=document.getElementById('evHolyVagas');
+  if(!vagasEl||!holyEl) return;
+  const vagas=parseInt(vagasEl.value)||0;
+  const maxCap=Math.min(holyOp.capacidade||1,vagas);
+  holyEl.max=maxCap;
+  if(parseInt(holyEl.value)>maxCap) holyEl.value=maxCap;
+  const maxLabel=holyEl.nextElementSibling;
+  if(maxLabel) maxLabel.textContent=`/ ${vagas} vagas · cap.×${holyOp.capacidade||1}`;
 }
 
 // Pending save data used by reativar/nova edição popup
@@ -1419,7 +1486,13 @@ function salvarEvento(){
   }
 
   const dias=[...document.querySelectorAll('#evDias .check-pill.checked')].map(el=>parseInt(el.querySelector('input').dataset.val));
-  const segConfig=DB.segmentos.filter(seg=>document.getElementById('evSeg_'+seg.id)?.checked).map(seg=>({segId:seg.id,vagas:parseInt(document.getElementById('evSegV_'+seg.id)?.value)||0}));
+  const segConfig=DB.segmentos.filter(seg=>document.getElementById('evSeg_'+seg.id)?.checked).map(seg=>{
+    const base={segId:seg.id,vagas:parseInt(document.getElementById('evSegV_'+seg.id)?.value)||0};
+    if(seg.id==='seg2'){
+      base.holyVagas=parseInt(document.getElementById('evHolyVagas')?.value)||0;
+    }
+    return base;
+  });
 
   const data={
     nome,
@@ -1510,6 +1583,34 @@ function confirmarNovaEdicao(){
   _pendingSaveData=null;
 }
 
+// Apply Holy Drinks default slots to all empty days of an event
+function applyHolyDefaults(evId){
+  const ev=DB.eventos.find(e=>e.id===evId); if(!ev) return;
+  const holyOp=DB.operadores.find(o=>o.isHoly); if(!holyOp) return;
+  const seg2Config=(ev.segmentosConfig||[]).find(sc=>sc.segId==='seg2');
+  if(!seg2Config) return;
+  const holyVagas=seg2Config.holyVagas||0;
+  if(holyVagas===0) return;
+
+  const days=getEventDays(ev);
+  let changed=false;
+  ev.cidades.forEach(cid=>{
+    if(!ev.escala[cid]) ev.escala[cid]={};
+    days.forEach(d=>{
+      const dk=d.toISOString().split('T')[0];
+      const existing=getSlots(ev,cid,dk);
+      // Only fill if day has NO operators at all
+      if(existing.length===0){
+        const slots=[];
+        for(let i=0;i<holyVagas;i++) slots.push({id:holyOp.id,segId:'seg2'});
+        ev.escala[cid][dk]=slots;
+        changed=true;
+      }
+    });
+  });
+  if(changed) persist();
+}
+
 function _aplicarSalvamentoEvento(data){
   let savedEvId;
   if(_editEvId){
@@ -1533,6 +1634,10 @@ function _aplicarSalvamentoEvento(data){
   }
   // Run autoArchiveCheck so status is correct before rendering
   autoArchiveCheck();
+
+  // Apply Holy Drinks default vagas to all days that have no operators yet
+  applyHolyDefaults(savedEvId);
+
   closeModal('mEvento');
 
   // Find where the saved event ended up after archive check
@@ -1618,8 +1723,9 @@ function renderEscala(){
       const dk=day.toISOString().split('T')[0];
       const isToday=day.getTime()===today.getTime();
       const isPast=day<today;
-      const opIds=(cidEsc[dk]||[]);
-      const ops=opIds.map(id=>DB.operadores.find(o=>o.id===id)).filter(Boolean);
+      const slots=getSlots(ev,cid,dk);
+      const uniqueOpIds=[...new Set(slots.map(s=>s.id))];
+      const ops=uniqueOpIds.map(id=>DB.operadores.find(o=>o.id===id)).filter(Boolean);
       const al=getDayAlertStatus(ev,dk,cid);
       const hasOvr=ev.vagasOverride&&ev.vagasOverride[cid]&&ev.vagasOverride[cid][dk];
       const hasHorOvr=ev.horarioOverride&&ev.horarioOverride[dk];
@@ -1641,10 +1747,16 @@ function renderEscala(){
           </div>
         </div>
         <div class="day-ops-body">
-          ${ops.length?ops.map(op=>{const seg=op.segmentos?.length?DB.segmentos.find(s=>s.id===op.segmentos[0]):null;return`<div class="op-chip" style="border-left-color:${seg?seg.cor:'#888'}" onclick="openEscDia('${dk}')"><div class="op-chip-name">${op.nome}</div><div class="op-chip-seg">${seg?seg.icone+' '+seg.nome:''}</div></div>`;}).join(''):`<div class="day-empty-txt">vazio</div>`}
+          ${slots.length?slots.map(slot=>{
+            const op=DB.operadores.find(o=>o.id===slot.id);if(!op)return'';
+            const seg=DB.segmentos.find(s=>s.id===slot.segId)||DB.segmentos.find(s=>op.segmentos?.includes(s.id));
+            const chipColor=seg?seg.cor:'#888';
+            const chipSeg=seg?seg.icone+' '+seg.nome:'';
+            return'<div class="op-chip" style="border-left-color:'+chipColor+'" onclick="openEscDia(\"'+dk+'\")"><div class="op-chip-name">'+op.nome+'</div><div class="op-chip-seg">'+chipSeg+'</div></div>';
+          }).join(''):'<div class="day-empty-txt">vazio</div>'}
         </div>
         <div style="padding:0 6px 5px;display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:10px;color:${al.color||'var(--text-muted)'}">${opIds.length}/${totalV}</span>
+          <span style="font-size:10px;color:${al.color||'var(--text-muted)'}">${slots.length}/${totalV}</span>
           <div style="display:flex;gap:3px">
             <button onclick="openHorarioDia('${dk}')" style="background:none;border:none;font-size:11px;color:var(--text-muted);cursor:pointer;padding:1px 3px" title="Ajustar horário deste dia">🕐</button>
             <button onclick="openVagasDia('${dk}')" style="background:none;border:none;font-size:11px;color:var(--text-muted);cursor:pointer;padding:1px 3px" title="Ajustar vagas deste dia">⚙</button>
@@ -1660,21 +1772,42 @@ function renderEscala(){
 // ESCALA DIA
 function openEscDia(dateKey){
   _escDay=dateKey; _lastAccessedDay=dateKey;
-  const ev=DB.eventos.find(e=>e.id===_escEvId); if(!ev) return;
+  const ev=DB.eventos.find(e=>e.id===_escEvId);
+  if(!ev){showToast('Erro: evento não encontrado. Recarregue a página.');return;}
   const cid=_escCid;
+  if(!cid){showToast('Erro: cidade não selecionada.');return;}
   const day=new Date(dateKey+'T00:00:00');
   document.getElementById('mEscDiaTitle').textContent=`${DIAS_SEMANA[day.getDay()]}, ${day.getDate()} ${MESES_C[day.getMonth()]} · ${cid}`;
-  const current=((ev.escala[cid]||{})[dateKey]||[]);
 
-  // Build a map of how many times each operator is booked on this date (across ALL events/cities)
+  // _escDiaCurrent: array of {id, segId} — one entry per slot
+  // Convert from legacy flat [opId,...] format
+  const rawCurrent=((ev.escala[cid]||{})[dateKey]||[]);
+  // rawCurrent may be flat [id,...] or already [{id,segId},...] — normalize
+  const normalizeSlots=(arr,ev2,cid2,dk)=>{
+    if(!arr.length) return [];
+    if(typeof arr[0]==='object') return arr.map(s=>({...s}));
+    // legacy flat array — infer segId from operator's first matching segment in event
+    return arr.map(opId=>{
+      const op=DB.operadores.find(o=>o.id===opId);
+      if(!op) return {id:opId,segId:'unknown'};
+      const evSegs=(ev2.segmentosConfig||[]).map(sc=>sc.segId);
+      const segId=(op.segmentos||[]).find(s=>evSegs.includes(s))||'unknown';
+      return {id:opId,segId};
+    });
+  };
+  const current=normalizeSlots(rawCurrent,ev,cid,dateKey);
+  window._escDiaCurrent=[...current];
+  window._holyCienciaConfirmed=false;
+
+  // Count total capacity used by each operator today (across ALL events/cities EXCEPT current)
   const opBookingsOnDay={};
   DB.eventos.forEach(otherEv=>{
-    otherEv.cidades&&otherEv.cidades.forEach(otherCid=>{
+    (otherEv.cidades||[]).forEach(otherCid=>{
       const booked=((otherEv.escala[otherCid]||{})[dateKey]||[]);
-      booked.forEach(opId=>{
-        // Don't count the current event+city (that's being edited now)
+      booked.forEach(slot=>{
+        const slotId=typeof slot==='object'?slot.id:slot;
         const isCurrentSlot=(otherEv.id===_escEvId&&otherCid===cid);
-        if(!isCurrentSlot) opBookingsOnDay[opId]=(opBookingsOnDay[opId]||0)+1;
+        if(!isCurrentSlot) opBookingsOnDay[slotId]=(opBookingsOnDay[slotId]||0)+1;
       });
     });
   });
@@ -1682,63 +1815,207 @@ function openEscDia(dateKey){
   const opsCity=DB.operadores.filter(op=>!op.cidades||op.cidades.split(',').some(c=>c.trim()===cid));
   const segConfig=ev.segmentosConfig||[];
   let html='';
+
   segConfig.forEach(sc=>{
     const seg=DB.segmentos.find(s=>s.id===sc.segId); if(!seg) return;
     const vagasSeg=getSegVagaForDay(ev,dateKey,cid,sc.segId);
     const opsInSeg=opsCity.filter(op=>op.segmentos&&op.segmentos.includes(sc.segId));
     if(!opsInSeg.length) return;
-    const selectedInSeg=current.filter(id=>opsInSeg.some(op=>op.id===id));
+
+    // Count slots in THIS segment only
+    const slotsFilled=window._escDiaCurrent.filter(s=>s.segId===sc.segId).length;
+
     html+=`<div style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div style="font-size:11px;font-weight:700;color:${seg.cor};text-transform:uppercase;letter-spacing:1.5px">${seg.icone} ${seg.nome}</div>
-        <div id="vcnt_${sc.segId}" style="font-size:12px;color:${selectedInSeg.length<vagasSeg?'var(--warn)':'var(--green)'}">${selectedInSeg.length}/${vagasSeg} vagas</div>
+        <div id="vcnt_${sc.segId}" style="font-size:12px;color:${slotsFilled<vagasSeg?'var(--warn)':'var(--green)'}">${slotsFilled}/${vagasSeg} vagas</div>
       </div>`;
+
     opsInSeg.forEach(op=>{
-      const isHoly=op.isHoly||false;
-      const autoCheck=DB.config.autoHoly&&isHoly&&sc.segId==='seg2'&&!current.length;
-      const checked=current.includes(op.id)||autoCheck;
       const capacidade=op.capacidade||1;
       const bookingsElsewhere=opBookingsOnDay[op.id]||0;
-      // Locked = already booked elsewhere beyond capacity
-      const isLocked=!checked&&(bookingsElsewhere>=capacidade);
-      const lockTip=isLocked?`Já escalado em ${bookingsElsewhere} operação(ões) neste dia (capacidade: ${capacidade})`:'';
-      html+=`<label id="lbl_${op.id}_${sc.segId}" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:${isLocked?'rgba(255,255,255,0.02)':checked?'rgba(223,178,80,0.06)':'var(--dark3)'};border:1px solid ${isLocked?'rgba(255,255,255,0.04)':checked?'rgba(223,178,80,0.2)':'rgba(255,255,255,0.05)'};border-radius:8px;${isLocked?'cursor:not-allowed;opacity:0.45':'cursor:pointer'};margin-bottom:4px;font-size:13px;font-weight:normal;text-transform:none;letter-spacing:0;color:var(--text)" ${isLocked?`title="${lockTip}"`:`onclick="onEscOpClick(this,'${op.id}','${sc.segId}',${vagasSeg})"`}>
-        <input type="checkbox" name="escOp" value="${op.id}" data-seg="${sc.segId}" ${checked?'checked':''} ${isLocked?'disabled':''} style="width:auto;accent-color:var(--gold)">
-        <div style="flex:1">
-          <div style="font-weight:600">${op.nome}${isHoly?' ✦':''}${capacidade>1?` <span style="font-size:10px;background:rgba(223,178,80,0.15);color:var(--gold);padding:1px 5px;border-radius:3px">×${capacidade}</span>`:''}${isLocked?` <span style="font-size:10px;color:var(--amber)">ocupado</span>`:''}</div>
-          <div style="font-size:11px;color:var(--text-muted)">${op.produto}</div>
-        </div>
-        <span class="badge ${STATUS_BADGE[op.status]||'badge-blue'}" style="font-size:10px">${op.status}</span>
-      </label>`;
+      // Count cross-segment: how many total slots does this op occupy today in THIS event
+      const usedInThisDay=window._escDiaCurrent.filter(s=>s.id===op.id).length;
+      // Available for new slots: limited by capacidade - total already used
+      const availableTotal=Math.max(0,capacidade-bookingsElsewhere-usedInThisDay);
+      // Slots used by this operator in THIS segment
+      const currentQtyInSeg=window._escDiaCurrent.filter(s=>s.id===op.id&&s.segId===sc.segId).length;
+      // Slots used by OTHER operators in this segment
+      const otherSlotsInSeg=window._escDiaCurrent.filter(s=>s.id!==op.id&&s.segId===sc.segId).length;
+      // Max this op can take in this segment: min(available+currentInSeg, segment space left + currentInSeg)
+      const maxInSeg=Math.min(currentQtyInSeg+availableTotal, vagasSeg-otherSlotsInSeg);
+      const isLocked=(maxInSeg===0&&currentQtyInSeg===0);
+
+      if(capacidade>1){
+        html+=`<div id="lbl_${op.id}_${sc.segId}" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:${currentQtyInSeg>0?'rgba(223,178,80,0.06)':'var(--dark3)'};border:1px solid ${currentQtyInSeg>0?'rgba(223,178,80,0.2)':'rgba(255,255,255,0.05)'};border-radius:8px;margin-bottom:4px;${isLocked?'opacity:0.45':''}">
+          <div style="flex:1">
+            <div style="font-weight:600">${op.nome}${op.isHoly?' ✦':''} <span style="font-size:10px;background:rgba(223,178,80,0.15);color:var(--gold);padding:1px 5px;border-radius:3px">cap.×${capacidade}</span>${isLocked?` <span style="font-size:10px;color:var(--amber)">sem disponibilidade</span>`:''}</div>
+            <div style="font-size:11px;color:var(--text-muted)">${op.produto}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <span style="font-size:11px;color:var(--text-muted)">Vagas:</span>
+            <button onclick="changeOpQty(${op.id},'${sc.segId}',${vagasSeg},-1)" style="width:26px;height:26px;border-radius:50%;background:var(--surface);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-size:16px;cursor:pointer;line-height:1" ${currentQtyInSeg===0?'disabled':''}>−</button>
+            <span id="qty_${op.id}_${sc.segId}" style="font-size:15px;font-weight:700;color:var(--gold);min-width:20px;text-align:center">${currentQtyInSeg}</span>
+            <button onclick="changeOpQty(${op.id},'${sc.segId}',${vagasSeg},+1)" style="width:26px;height:26px;border-radius:50%;background:var(--surface);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-size:16px;cursor:pointer;line-height:1" ${maxInSeg<=currentQtyInSeg||isLocked?'disabled':''}>+</button>
+          </div>
+        </div>`;
+      } else {
+        const checked=currentQtyInSeg>0;
+        const lockTip=isLocked?`Cap. ${capacidade} — ${bookingsElsewhere} uso(s) em outros eventos hoje`:'';
+        html+=`<label id="lbl_${op.id}_${sc.segId}" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:${isLocked?'rgba(255,255,255,0.02)':checked?'rgba(223,178,80,0.06)':'var(--dark3)'};border:1px solid ${isLocked?'rgba(255,255,255,0.04)':checked?'rgba(223,178,80,0.2)':'rgba(255,255,255,0.05)'};border-radius:8px;${isLocked?'cursor:not-allowed;opacity:0.45':'cursor:pointer'};margin-bottom:4px;font-size:13px;font-weight:normal;text-transform:none;letter-spacing:0;color:var(--text)" ${isLocked?`title="${lockTip}"`:`onclick="onEscOpClick(this,${op.id},'${sc.segId}',${vagasSeg})"`}>
+          <input type="checkbox" name="escOp" value="${op.id}" data-seg="${sc.segId}" ${checked?'checked':''} ${isLocked?'disabled':''} style="width:auto;accent-color:var(--gold)">
+          <div style="flex:1">
+            <div style="font-weight:600">${op.nome}${op.isHoly?' ✦':''}${isLocked?` <span style="font-size:10px;color:var(--amber)">ocupado</span>`:''}</div>
+            <div style="font-size:11px;color:var(--text-muted)">${op.produto}</div>
+          </div>
+          <span class="badge ${STATUS_BADGE[op.status]||'badge-blue'}" style="font-size:10px">${op.status}</span>
+        </label>`;
+      }
     });
     html+='</div>';
   });
-  if(!html) html='<p style="color:var(--text-muted);text-align:center;padding:24px">Nenhum operador disponível para esta cidade</p>';
+
+  if(!html) html='<p style="color:var(--text-muted);text-align:center;padding:24px">Nenhum operador disponível</p>';
   document.getElementById('mEscDiaBody').innerHTML=html;
-  document.getElementById('mEscDia').classList.add('open');
+
+  // Lock unchecked labels in full segments
+  requestAnimationFrame(()=>{
+    (ev.segmentosConfig||[]).forEach(sc=>{
+      const vagasSeg=getSegVagaForDay(ev,dateKey,cid,sc.segId);
+      const filled=window._escDiaCurrent.filter(s=>s.segId===sc.segId).length;
+      if(filled>=vagasSeg){
+        document.querySelectorAll(`input[name="escOp"][data-seg="${sc.segId}"]`).forEach(cb=>{
+          if(!cb.checked&&!cb.disabled){
+            const lbl=cb.closest('label');
+            if(lbl){lbl.style.cursor='not-allowed';lbl.style.opacity='0.45';lbl.setAttribute('data-locked-full','1');}
+          }
+        });
+      }
+    });
+  });
+}
+
+function changeOpQty(opId,segId,vagasSeg,delta){
+  opId=parseInt(opId);
+  if(!window._escDiaCurrent) return;
+  const op=DB.operadores.find(o=>o.id===opId);
+  const capacidade=op?.capacidade||1;
+  const isHoly=op?.isHoly||false;
+
+  // Current qty of this op in this specific segment
+  const currentQtyInSeg=window._escDiaCurrent.filter(s=>s.id===opId&&s.segId===segId).length;
+  // Total used by this op across ALL segments today (cross-segment cap enforcement)
+  const totalUsedByOp=window._escDiaCurrent.filter(s=>s.id===opId).length;
+  const newQtyInSeg=currentQtyInSeg+delta;
+  if(newQtyInSeg<0) return;
+
+  // Check total capacity FIRST (cross-segment)
+  const newTotal=totalUsedByOp+(newQtyInSeg-currentQtyInSeg);
+  if(newTotal>capacidade){showToast(`⚠️ ${op?.nome||'Operador'} já atingiu o limite de ${capacidade} operação(ões) simultânea(s)`);return;}
+  // Then check segment space
+  const otherSlotsInSeg=window._escDiaCurrent.filter(s=>s.id!==opId&&s.segId===segId).length;
+  if(newQtyInSeg>vagasSeg-otherSlotsInSeg){showToast(`⚠️ Limite de ${vagasSeg} vaga(s) para este segmento atingido`);return;}
+
+  // Holy ciência warning
+  const ev=DB.eventos.find(e=>e.id===_escEvId);
+  const seg2Config=ev?.segmentosConfig?.find(sc=>sc.segId===segId);
+  const holyDefault=seg2Config?.holyVagas||0;
+  if(isHoly&&holyDefault>0&&newQtyInSeg!==holyDefault&&!window._holyCienciaConfirmed){
+    showConfirm(
+      '✦ Alterando padrão da Holy Drinks',
+      `O padrão deste evento é ${holyDefault} vaga(s) para a Holy Drinks neste dia. Você está alterando para ${newQtyInSeg}. Essa mudança afeta apenas este dia.`,
+      ()=>{window._holyCienciaConfirmed=true;_doChangeQty(opId,segId,vagasSeg,newQtyInSeg,capacidade);},
+      'Confirmar alteração'
+    );
+    return;
+  }
+  _doChangeQty(opId,segId,vagasSeg,newQtyInSeg,capacidade);
+}
+
+function _doChangeQty(opId,segId,vagasSeg,newQtyInSeg,capacidade){
+  // Remove this op's slots for this segment, re-add newQty
+  window._escDiaCurrent=window._escDiaCurrent.filter(s=>!(s.id===opId&&s.segId===segId));
+  for(let i=0;i<newQtyInSeg;i++) window._escDiaCurrent.push({id:opId,segId});
+
+  // Update qty display
+  const qtyEl=document.getElementById(`qty_${opId}_${segId}`);
+  if(qtyEl) qtyEl.textContent=newQtyInSeg;
+
+  // Update container style
+  const lbl=document.getElementById(`lbl_${opId}_${segId}`);
+  if(lbl){
+    lbl.style.background=newQtyInSeg>0?'rgba(223,178,80,0.06)':'var(--dark3)';
+    lbl.style.border=`1px solid ${newQtyInSeg>0?'rgba(223,178,80,0.2)':'rgba(255,255,255,0.05)'}`;
+  }
+
+  // Recalculate maxInSeg for button states
+  const totalUsedByOp=window._escDiaCurrent.filter(s=>s.id===opId).length;
+  const otherSlotsInSeg=window._escDiaCurrent.filter(s=>s.id!==opId&&s.segId===segId).length;
+  const availableTotal=Math.max(0,capacidade-totalUsedByOp);
+  const maxInSeg=Math.min(newQtyInSeg+availableTotal, vagasSeg-otherSlotsInSeg);
+  const btnMinus=lbl?.querySelector('button:first-of-type');
+  const btnPlus=lbl?.querySelector('button:last-of-type');
+  if(btnMinus) btnMinus.disabled=(newQtyInSeg===0);
+  if(btnPlus) btnPlus.disabled=(newQtyInSeg>=maxInSeg);
+
+  // Update segment vacancy counter
+  const filledInSeg=window._escDiaCurrent.filter(s=>s.segId===segId).length;
+  const vcnt=document.getElementById('vcnt_'+segId);
+  if(vcnt){vcnt.textContent=`${filledInSeg}/${vagasSeg} vagas`;vcnt.style.color=filledInSeg<vagasSeg?'var(--warn)':'var(--green)';}
 }
 
 function onEscOpClick(lbl,opId,segId,maxVagas){
+  opId=parseInt(opId);
   const cb=lbl.querySelector('input[type=checkbox]');
-  const willCheck=!cb.checked;
+  if(!window._escDiaCurrent) window._escDiaCurrent=[];
+  const alreadyIn=window._escDiaCurrent.some(s=>s.id===opId&&s.segId===segId);
+  const willCheck=!alreadyIn;
+
   if(willCheck){
-    const total=document.querySelectorAll(`input[name="escOp"][data-seg="${segId}"]:checked`).length;
-    if(total>=maxVagas){showToast(`⚠️ Limite de ${maxVagas} vaga(s) para este segmento atingido`);return;}
+    // Check cross-segment capacity FIRST (more specific message)
+    const op=DB.operadores.find(o=>o.id===opId);
+    const capacidade=op?.capacidade||1;
+    const totalUsedByOp=window._escDiaCurrent.filter(s=>s.id===opId).length;
+    if(totalUsedByOp>=capacidade){
+      showToast(`⚠️ ${op.nome} já atingiu o limite de ${capacidade} operação(ões) simultânea(s)`);
+      return;
+    }
+    // Then check segment limit
+    const filledInSeg=window._escDiaCurrent.filter(s=>s.segId===segId).length;
+    if(filledInSeg>=maxVagas){showToast(`⚠️ Limite de ${maxVagas} vaga(s) para este segmento atingido`);return;}
+    window._escDiaCurrent.push({id:opId,segId});
+  } else {
+    const idx=window._escDiaCurrent.findIndex(s=>s.id===opId&&s.segId===segId);
+    if(idx>=0) window._escDiaCurrent.splice(idx,1);
   }
   cb.checked=willCheck;
   lbl.style.background=willCheck?'rgba(223,178,80,0.06)':'var(--dark3)';
   lbl.style.border=`1px solid ${willCheck?'rgba(223,178,80,0.2)':'rgba(255,255,255,0.05)'}`;
-  const count=document.querySelectorAll(`input[name="escOp"][data-seg="${segId}"]:checked`).length;
+
+  // Update count and lock/unlock unchecked in segment
+  const filledInSeg=window._escDiaCurrent.filter(s=>s.segId===segId).length;
   const el=document.getElementById('vcnt_'+segId);
-  if(el){el.textContent=`${count}/${maxVagas} vagas`;el.style.color=count<maxVagas?'var(--warn)':'var(--green)';}
+  if(el){el.textContent=`${filledInSeg}/${maxVagas} vagas`;el.style.color=filledInSeg<maxVagas?'var(--warn)':'var(--green)';}
+  document.querySelectorAll(`input[name="escOp"][data-seg="${segId}"]`).forEach(otherCb=>{
+    if(!otherCb.checked&&!otherCb.disabled){
+      const otherLbl=otherCb.closest('label');
+      if(filledInSeg>=maxVagas){
+        otherLbl.style.cursor='not-allowed';otherLbl.style.opacity='0.45';otherLbl.setAttribute('data-locked-full','1');
+      } else {
+        otherLbl.style.cursor='pointer';otherLbl.style.opacity='1';otherLbl.removeAttribute('data-locked-full');
+      }
+    }
+  });
 }
 
 function resetEscalaDia(){
+  window._escDiaCurrent=[];
   document.querySelectorAll('input[name="escOp"]').forEach(cb=>{
     cb.checked=false;
     const lbl=cb.closest('label');
-    if(lbl){lbl.style.background='var(--dark3)';lbl.style.border='1px solid rgba(255,255,255,0.05)';}
+    if(lbl){lbl.style.background='var(--dark3)';lbl.style.border='1px solid rgba(255,255,255,0.05)';lbl.style.cursor='pointer';lbl.style.opacity='1';}
   });
+  document.querySelectorAll('[id^="qty_"]').forEach(el=>el.textContent='0');
   document.querySelectorAll('[id^="vcnt_"]').forEach(el=>{
     const segId=el.id.replace('vcnt_','');
     const ev=DB.eventos.find(e=>e.id===_escEvId);
@@ -1751,9 +2028,11 @@ function salvarEscDia(){
   const cid=_escCid;
   if(!ev.escala) ev.escala={};
   if(!ev.escala[cid]) ev.escala[cid]={};
-  ev.escala[cid][_escDay]=[...document.querySelectorAll('input[name="escOp"]:checked')].map(c=>parseInt(c.value));
+  // Save as [{id, segId},...] format
+  ev.escala[cid][_escDay]=[...(window._escDiaCurrent||[])];
   persist();closeModal('mEscDia');renderEscala();showToast('Escala salva!');
 }
+
 
 // COPY ESCALA
 function openCopyEscala(){
@@ -1761,14 +2040,14 @@ function openCopyEscala(){
   if(!ev||!ev.inicio||!ev.fim){showToast('Selecione evento com datas');return;}
   const cid=_escCid;
   const days=getEventDays(ev);
-  const daysWithOps=days.filter(d=>((ev.escala[cid]||{})[d.toISOString().split('T')[0]]||[]).length>0);
+  const daysWithOps=days.filter(d=>getSlots(ev,cid,d.toISOString().split('T')[0]).length>0);
 
   const originSel=document.getElementById('copyOrigin');
   // Default: last accessed day if has ops, else first day with ops, else "vazio"
   let defaultOrigin='__reset__';
   if(_lastAccessedDay){
     const laDk=_lastAccessedDay;
-    const laHasOps=((ev.escala[cid]||{})[laDk]||[]).length>0;
+    const laHasOps=getSlots(ev,cid,laDk).length>0;
     if(laHasOps) defaultOrigin=laDk;
   }
   if(defaultOrigin==='__reset__'&&daysWithOps.length) defaultOrigin=daysWithOps[0].toISOString().split('T')[0];
@@ -1786,14 +2065,14 @@ function filterCopyDest(){
   const originDk=document.getElementById('copyOrigin').value;
   const days=getEventDays(ev);
   // Get origin ops for comparison
-  const originOps=originDk==='__reset__'?[]:((ev.escala[cid]||{})[originDk]||[]);
+  const originOps=originDk==='__reset__'?[]:getSlots(ev,cid,originDk);
 
   const destEl=document.getElementById('copyDestDays');
   destEl.innerHTML=days.filter(d=>{
     const dk=d.toISOString().split('T')[0];
     if(dk===originDk) return false; // exclude origin
     // If same ops as origin, exclude
-    const dayOps=((ev.escala[cid]||{})[dk]||[]);
+    const dayOps=getSlots(ev,cid,dk);
     if(originDk!=='__reset__'&&JSON.stringify([...dayOps].sort()===JSON.stringify([...originOps].sort()))) return false;
     return true;
   }).map(d=>{
@@ -1815,7 +2094,7 @@ function executarCopy(){
   if(!dests.length){showToast('Selecione ao menos um dia de destino');return;}
 
   // Check if any dest has ops already
-  const destsWithOps=dests.filter(dk=>((ev.escala[cid]||{})[dk]||[]).length>0);
+  const destsWithOps=dests.filter(dk=>getSlots(ev,cid,dk).length>0);
 
   const doApply=()=>{
     dests.forEach(dk=>{ev.escala[cid][dk]=[...srcOps];});
@@ -2120,12 +2399,12 @@ function delOp(id){if(!confirm('Remover operador?'))return;DB.operadores=DB.oper
 // =============================================
 // SEGMENTOS
 // =============================================
-function renderSegmentos(){document.getElementById('segGrid').innerHTML=DB.segmentos.map(seg=>{const count=DB.operadores.filter(o=>o.segmentos&&o.segmentos.includes(seg.id)).length;return`<div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--dark3);border:1px solid ${seg.cor}25;border-radius:var(--radius-sm);margin-bottom:6px"><div style="width:34px;height:34px;border-radius:8px;background:${seg.cor}20;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${seg.icone}</div><div style="flex:1"><div style="font-weight:700;font-size:13px;color:${seg.cor}">${seg.nome}${seg.isHoly?' <span style="font-size:10px;color:var(--gold)">(Própria)</span>':''}</div><div style="font-size:11px;color:var(--text-muted)">${count} operador(es)</div></div><button class="btn btn-outline btn-sm" onclick="editSeg('${seg.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="delSeg('${seg.id}')">✕</button></div>`;}).join('')||'<div style="color:var(--text-muted);text-align:center;padding:32px">Nenhum segmento</div>';}
+function renderSegmentos(){document.getElementById('segGrid').innerHTML=DB.segmentos.map(seg=>{const count=DB.operadores.filter(o=>o.segmentos&&o.segmentos.includes(seg.id)).length;return`<div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--dark3);border:1px solid ${seg.cor}25;border-radius:var(--radius-sm);margin-bottom:6px"><div style="width:34px;height:34px;border-radius:8px;background:${seg.cor}20;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${seg.icone}</div><div style="flex:1"><div style="font-weight:700;font-size:13px;color:${seg.cor}">${seg.nome}</div><div style="font-size:11px;color:var(--text-muted)">${count} operador(es)</div></div><button class="btn btn-outline btn-sm" onclick="editSeg('${seg.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="delSeg('${seg.id}')">✕</button></div>`;}).join('')||'<div style="color:var(--text-muted);text-align:center;padding:32px">Nenhum segmento</div>';}
 let _segColorSel2=SEG_CORES[0];
 function openModalSeg(){_editSegId=null;document.getElementById('mSegTitle').textContent='Novo Segmento';document.getElementById('segNome').value='';document.getElementById('segIcone').value='';document.getElementById('segIsHoly').checked=false;_segColorSel2=SEG_CORES[0];buildSegCores();document.getElementById('mSeg').classList.add('open');}
-function editSeg(id){const seg=DB.segmentos.find(s=>s.id===id);if(!seg)return;_editSegId=id;document.getElementById('mSegTitle').textContent='Editar Segmento';document.getElementById('segNome').value=seg.nome;document.getElementById('segIcone').value=seg.icone;document.getElementById('segIsHoly').checked=!!seg.isHoly;_segColorSel2=seg.cor;buildSegCores();document.getElementById('mSeg').classList.add('open');}
+function editSeg(id){const seg=DB.segmentos.find(s=>s.id===id);if(!seg)return;_editSegId=id;document.getElementById('mSegTitle').textContent='Editar Segmento';document.getElementById('segNome').value=seg.nome;document.getElementById('segIcone').value=seg.icone;_segColorSel2=seg.cor;buildSegCores();document.getElementById('mSeg').classList.add('open');}
 function buildSegCores(){document.getElementById('segCores').innerHTML=SEG_CORES.map(c=>`<div onclick="_segColorSel2='${c}';buildSegCores()" style="width:26px;height:26px;border-radius:50%;background:${c};cursor:pointer;border:3px solid ${c===_segColorSel2?'white':'transparent'};transition:border 0.15s"></div>`).join('');}
-function salvarSeg(){const nome=document.getElementById('segNome').value.trim();if(!nome){showToast('Informe o nome');return;}const data={nome,icone:document.getElementById('segIcone').value||'●',cor:_segColorSel2,isHoly:document.getElementById('segIsHoly').checked};if(_editSegId){const seg=DB.segmentos.find(s=>s.id===_editSegId);Object.assign(seg,data);}else{data.id='seg'+Date.now();DB.segmentos.push(data);}persist();closeModal('mSeg');renderSegmentos();showToast('Salvo!');}
+function salvarSeg(){const nome=document.getElementById('segNome').value.trim();if(!nome){showToast('Informe o nome');return;}const data={nome,icone:document.getElementById('segIcone').value||'●',cor:_segColorSel2};if(_editSegId){const seg=DB.segmentos.find(s=>s.id===_editSegId);Object.assign(seg,data);}else{data.id='seg'+Date.now();DB.segmentos.push(data);}persist();closeModal('mSeg');renderSegmentos();showToast('Salvo!');}
 function delSeg(id){if(!confirm('Remover?'))return;DB.segmentos=DB.segmentos.filter(s=>s.id!==id);persist();renderSegmentos();}
 
 // =============================================
