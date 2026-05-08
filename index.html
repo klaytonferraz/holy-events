@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <!--
   Holy Events Manager
-  Versão: 1.4.5
+  Versão: 1.4.6
   Data: 2026-05-08
   Histórico:
+    1.4.6 - Fix {id,segId} em todos handlers OPS, tooltip ChatGPT
     1.4.5 - Merge OPS da v1.3.9 (corrige backtick bug), header de versão, tooltip CSS
     1.4.4 - Tentativa fix backtick label (revertida)
     1.4.3 - Fix chip onclick escape
@@ -229,19 +230,39 @@ textarea{resize:vertical;min-height:70px;}
 .cal-view-ev{font-size:10px;padding:2px 5px;border-radius:3px;margin-top:3px;font-weight:600;}
 
 /* TOOLTIP */
-.tooltip-wrap{position:relative;display:inline-flex;}
+.tooltip-wrap{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
 .tooltip-wrap .tooltip-text{
-  display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
-  background:var(--dark);border:1px solid rgba(255,255,255,0.15);border-radius:6px;
-  padding:6px 10px;font-size:11px;color:var(--text);white-space:normal;z-index:200;
-  min-width:160px;max-width:220px;text-align:center;pointer-events:none;
+  display:none;
+  position:absolute;
+  bottom:calc(100% + 8px);
+  right:0;
+  transform:none;
+  background:var(--dark);
+  border:1px solid rgba(255,255,255,0.15);
+  border-radius:6px;
+  padding:6px 10px;
+  font-size:11px;
+  color:var(--text);
+  white-space:normal;
+  z-index:500;
+  min-width:180px;
+  max-width:240px;
+  text-align:left;
+  pointer-events:none;
   box-shadow:0 4px 16px rgba(0,0,0,0.4);
 }
 .tooltip-wrap:hover .tooltip-text{display:block;}
-/* Keep tooltip on screen — right-align if near right edge */
-.tooltip-wrap.tip-left .tooltip-text{left:auto;right:0;transform:none;}
 
-.alert-icon{cursor:default;font-size:13px;}
+.alert-icon{
+  cursor:default;
+  font-size:13px;
+  line-height:1;
+}
 
 /* FILTER BAR */
 .filter-bar{display:flex;gap:5px;flex-wrap:wrap;}
@@ -1839,7 +1860,7 @@ function openEscDia(dateKey){
     const vagasSeg=getSegVagaForDay(ev,dateKey,cid,sc.segId);
     const opsInSeg=opsCity.filter(op=>op.segmentos&&op.segmentos.includes(sc.segId));
     if(!opsInSeg.length) return;
-    const slotsFilled=current.filter(id=>opsInSeg.some(op=>op.id===id)).length;
+    const slotsFilled=current.filter(s=>{const sid=typeof s==='object'?s.id:s;return opsInSeg.some(op=>op.id===sid);}).length;
     html+=`<div style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div style="font-size:11px;font-weight:700;color:${seg.cor};text-transform:uppercase;letter-spacing:1.5px">${seg.icone} ${seg.nome}</div>
@@ -1849,10 +1870,10 @@ function openEscDia(dateKey){
       const capacidade=op.capacidade||1;
       const bookingsElsewhere=opBookingsOnDay[op.id]||0;
       const availableCapacity=Math.max(0,capacidade-bookingsElsewhere);
-      const currentQty=current.filter(id=>id===op.id).length;
+      const currentQty=current.filter(s=>(typeof s==='object'?s.id:s)===op.id).length;
       const isLocked=availableCapacity===0&&currentQty===0;
       if(capacidade>1){
-        const otherSlots=current.filter(id=>id!==op.id&&opsInSeg.some(o=>o.id===id)).length;
+        const otherSlots=current.filter(s=>{const sid=typeof s==='object'?s.id:s;return sid!==op.id&&opsInSeg.some(o=>o.id===sid);}).length;
         const maxQty=Math.min(availableCapacity,vagasSeg-otherSlots);
         html+=`<div id="lbl_${op.id}_${sc.segId}" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:${currentQty>0?'rgba(223,178,80,0.06)':'var(--dark3)'};border:1px solid ${currentQty>0?'rgba(223,178,80,0.2)':'rgba(255,255,255,0.05)'};border-radius:8px;margin-bottom:4px;${isLocked?'opacity:0.45':''}">
           <div style="flex:1">
@@ -1919,58 +1940,65 @@ function changeOpQty(opId,segId,vagasSeg,delta){
   const op=DB.operadores.find(o=>o.id===opId);
   const capacidade=op?.capacidade||1;
   const isHoly=op?.isHoly||false;
-  const currentQty=window._escDiaCurrent.filter(id=>id===opId).length;
-  const newQty=currentQty+delta;
-  if(newQty<0) return;
+
+  // Count using {id,segId} format
+  const currentQtyInSeg=window._escDiaCurrent.filter(s=>s.id===opId&&s.segId===segId).length;
+  const totalUsedByOp=window._escDiaCurrent.filter(s=>s.id===opId).length;
+  const newQtyInSeg=currentQtyInSeg+delta;
+  if(newQtyInSeg<0) return;
 
   const opsInSeg=DB.operadores.filter(o=>o.segmentos&&o.segmentos.includes(segId));
-  const otherSlots=window._escDiaCurrent.filter(id=>id!==opId&&opsInSeg.some(o=>o.id===id)).length;
-  const maxQty=Math.min(capacidade,vagasSeg-otherSlots);
-  if(newQty>maxQty){showToast(`⚠️ Limite de ${vagasSeg} vaga(s) para este segmento atingido`);return;}
+  const otherSlotsInSeg=window._escDiaCurrent.filter(s=>s.id!==opId&&s.segId===segId).length;
+
+  // Check total capacity first (cross-segment)
+  const newTotal=totalUsedByOp+(newQtyInSeg-currentQtyInSeg);
+  if(newTotal>capacidade){showToast(op.nome+' já atingiu o limite de '+capacidade+' operação(ões) simultânea(s)');return;}
+  // Then check segment space
+  if(newQtyInSeg>vagasSeg-otherSlotsInSeg){showToast('⚠️ Limite de '+vagasSeg+' vaga(s) para este segmento atingido');return;}
 
   // Holy Drinks ciência warning
   const ev=DB.eventos.find(e=>e.id===_escEvId);
   const seg2Config=ev?.segmentosConfig?.find(sc=>sc.segId===segId);
   const holyDefault=seg2Config?.holyVagas||0;
-  if(isHoly&&holyDefault>0&&newQty!==holyDefault){
-    if(!window._holyCienciaConfirmed){
-      showConfirm(
-        '✦ Alterando padrão da Holy Drinks',
-        `O padrão deste evento é ${holyDefault} vaga(s) para a Holy Drinks neste dia. Você está alterando para ${newQty}. Essa mudança afeta apenas este dia e não altera o padrão do evento.`,
-        ()=>{window._holyCienciaConfirmed=true;_doChangeQty(opId,segId,vagasSeg,newQty,maxQty,opsInSeg);},
-        'Confirmar alteração'
-      );
-      return;
-    }
+  if(isHoly&&holyDefault>0&&newQtyInSeg!==holyDefault&&!window._holyCienciaConfirmed){
+    showConfirm(
+      '✦ Alterando padrão da Holy Drinks',
+      'O padrão deste evento é '+holyDefault+' vaga(s) para a Holy Drinks neste dia. Você está alterando para '+newQtyInSeg+'. Essa mudança afeta apenas este dia.',
+      ()=>{window._holyCienciaConfirmed=true;_doChangeQty(opId,segId,vagasSeg,newQtyInSeg,capacidade,opsInSeg);},
+      'Confirmar alteração'
+    );
+    return;
   }
-  _doChangeQty(opId,segId,vagasSeg,newQty,maxQty,opsInSeg);
+  _doChangeQty(opId,segId,vagasSeg,newQtyInSeg,capacidade,opsInSeg);
 }
 
-function _doChangeQty(opId,segId,vagasSeg,newQty,maxQty,opsInSeg){
-  window._escDiaCurrent=window._escDiaCurrent.filter(id=>id!==opId);
-  for(let i=0;i<newQty;i++) window._escDiaCurrent.push(opId);
+function _doChangeQty(opId,segId,vagasSeg,newQtyInSeg,capacidade,opsInSeg){
+  // Remove slots for this op+seg, re-add correct qty
+  window._escDiaCurrent=window._escDiaCurrent.filter(s=>!(s.id===opId&&s.segId===segId));
+  for(let i=0;i<newQtyInSeg;i++) window._escDiaCurrent.push({id:opId,segId:segId});
 
-  // Update qty display
-  const qtyEl=document.getElementById(`qty_${opId}_${segId}`);
-  if(qtyEl) qtyEl.textContent=newQty;
+  const qtyEl=document.getElementById('qty_'+opId+'_'+segId);
+  if(qtyEl) qtyEl.textContent=newQtyInSeg;
 
-  // Update container style
-  const lbl=document.getElementById(`lbl_${opId}_${segId}`);
+  const lbl=document.getElementById('lbl_'+opId+'_'+segId);
   if(lbl){
-    lbl.style.background=newQty>0?'rgba(223,178,80,0.06)':'var(--dark3)';
-    lbl.style.border=`1px solid ${newQty>0?'rgba(223,178,80,0.2)':'rgba(255,255,255,0.05)'}`;
+    lbl.style.background=newQtyInSeg>0?'rgba(223,178,80,0.06)':'var(--dark3)';
+    lbl.style.border='1px solid '+(newQtyInSeg>0?'rgba(223,178,80,0.2)':'rgba(255,255,255,0.05)');
   }
 
-  // Re-enable/disable buttons correctly
+  // Recalc max for button states
+  const totalUsedByOp=window._escDiaCurrent.filter(s=>s.id===opId).length;
+  const otherSlotsInSeg=window._escDiaCurrent.filter(s=>s.id!==opId&&s.segId===segId).length;
+  const availableTotal=Math.max(0,capacidade-totalUsedByOp);
+  const maxInSeg=Math.min(newQtyInSeg+availableTotal, vagasSeg-otherSlotsInSeg);
   const btnMinus=lbl?.querySelector('button:first-of-type');
   const btnPlus=lbl?.querySelector('button:last-of-type');
-  if(btnMinus) btnMinus.disabled=(newQty===0);
-  if(btnPlus) btnPlus.disabled=(newQty>=maxQty);
+  if(btnMinus) btnMinus.disabled=(newQtyInSeg===0);
+  if(btnPlus) btnPlus.disabled=(newQtyInSeg>=maxInSeg);
 
-  // Update vacancy counter
-  const totalInSeg=window._escDiaCurrent.filter(id=>opsInSeg.some(o=>o.id===id)).length;
+  const filledInSeg=window._escDiaCurrent.filter(s=>s.segId===segId).length;
   const vcnt=document.getElementById('vcnt_'+segId);
-  if(vcnt){vcnt.textContent=`${totalInSeg}/${vagasSeg} vagas`;vcnt.style.color=totalInSeg<vagasSeg?'var(--warn)':'var(--green)';}
+  if(vcnt){vcnt.textContent=filledInSeg+'/'+vagasSeg+' vagas';vcnt.style.color=filledInSeg<vagasSeg?'var(--warn)':'var(--green)';}
 }
 
 function onEscOpClick(lbl,opId,segId,maxVagas){
@@ -1978,40 +2006,40 @@ function onEscOpClick(lbl,opId,segId,maxVagas){
   const cb=lbl.querySelector('input[type=checkbox]');
   if(!window._escDiaCurrent) window._escDiaCurrent=[];
   const opsInSeg=DB.operadores.filter(op=>op.segmentos&&op.segmentos.includes(segId));
-  const alreadyIn=window._escDiaCurrent.includes(opId);
+  // Use {id,segId} format
+  const alreadyIn=window._escDiaCurrent.some(s=>s.id===opId&&s.segId===segId);
   const willCheck=!alreadyIn;
 
   if(willCheck){
-    const total=window._escDiaCurrent.filter(id=>opsInSeg.some(o=>o.id===id)).length;
-    if(total>=maxVagas){showToast(`⚠️ Limite de ${maxVagas} vaga(s) para este segmento atingido`);return;}
-    window._escDiaCurrent.push(opId);
+    // Check capacity first
+    const op=DB.operadores.find(o=>o.id===opId);
+    const capacidade=op?.capacidade||1;
+    const totalUsedByOp=window._escDiaCurrent.filter(s=>s.id===opId).length;
+    if(totalUsedByOp>=capacidade){showToast((op?.nome||'Operador')+' já atingiu o limite de '+capacidade+' operação(ões) simultânea(s)');return;}
+    // Then check segment
+    const filledInSeg=window._escDiaCurrent.filter(s=>s.segId===segId).length;
+    if(filledInSeg>=maxVagas){showToast('⚠️ Limite de '+maxVagas+' vaga(s) para este segmento atingido');return;}
+    window._escDiaCurrent.push({id:opId,segId:segId});
   } else {
-    const idx=window._escDiaCurrent.indexOf(opId);
+    const idx=window._escDiaCurrent.findIndex(s=>s.id===opId&&s.segId===segId);
     if(idx>=0) window._escDiaCurrent.splice(idx,1);
   }
   cb.checked=willCheck;
   lbl.style.background=willCheck?'rgba(223,178,80,0.06)':'var(--dark3)';
-  lbl.style.border=`1px solid ${willCheck?'rgba(223,178,80,0.2)':'rgba(255,255,255,0.05)'}`;
+  lbl.style.border='1px solid '+(willCheck?'rgba(223,178,80,0.2)':'rgba(255,255,255,0.05)');
 
-  // Update count and visually lock/unlock unchecked labels in this segment
-  const count=window._escDiaCurrent.filter(id=>opsInSeg.some(o=>o.id===id)).length;
+  const filledInSeg=window._escDiaCurrent.filter(s=>s.segId===segId).length;
   const el=document.getElementById('vcnt_'+segId);
-  if(el){el.textContent=`${count}/${maxVagas} vagas`;el.style.color=count<maxVagas?'var(--warn)':'var(--green)';}
+  if(el){el.textContent=filledInSeg+'/'+maxVagas+' vagas';el.style.color=filledInSeg<maxVagas?'var(--warn)':'var(--green)';}
 
-  // Lock all unchecked single-capacity labels in this segment when full
-  document.querySelectorAll(`input[name="escOp"][data-seg="${segId}"]`).forEach(otherCb=>{
+  // Lock/unlock unchecked labels in this segment
+  document.querySelectorAll('input[name="escOp"][data-seg="'+segId+'"]').forEach(function(otherCb){
     if(!otherCb.checked&&!otherCb.disabled){
       const otherLbl=otherCb.closest('label');
-      if(count>=maxVagas){
-        // Full — lock unchecked
-        otherLbl.style.cursor='not-allowed';
-        otherLbl.style.opacity='0.45';
-        otherLbl.setAttribute('data-locked-full','1');
+      if(filledInSeg>=maxVagas){
+        otherLbl.style.cursor='not-allowed';otherLbl.style.opacity='0.45';
       } else {
-        // Not full — unlock
-        otherLbl.style.cursor='pointer';
-        otherLbl.style.opacity='1';
-        otherLbl.removeAttribute('data-locked-full');
+        otherLbl.style.cursor='pointer';otherLbl.style.opacity='1';
       }
     }
   });
@@ -2019,16 +2047,16 @@ function onEscOpClick(lbl,opId,segId,maxVagas){
 
 function resetEscalaDia(){
   window._escDiaCurrent=[];
-  document.querySelectorAll('input[name="escOp"]').forEach(cb=>{
+  document.querySelectorAll('input[name="escOp"]').forEach(function(cb){
     cb.checked=false;
     const lbl=cb.closest('label');
-    if(lbl){lbl.style.background='var(--dark3)';lbl.style.border='1px solid rgba(255,255,255,0.05)';}
+    if(lbl){lbl.style.background='var(--dark3)';lbl.style.border='1px solid rgba(255,255,255,0.05)';lbl.style.cursor='pointer';lbl.style.opacity='1';}
   });
-  document.querySelectorAll('[id^="qty_"]').forEach(el=>el.textContent='0');
-  document.querySelectorAll('[id^="vcnt_"]').forEach(el=>{
+  document.querySelectorAll('[id^="qty_"]').forEach(function(el){el.textContent='0';});
+  document.querySelectorAll('[id^="vcnt_"]').forEach(function(el){
     const segId=el.id.replace('vcnt_','');
     const ev=DB.eventos.find(e=>e.id===_escEvId);
-    if(ev){const max=getSegVagaForDay(ev,_escDay,_escCid,segId);el.textContent=`0/${max} vagas`;el.style.color='var(--warn)';}
+    if(ev){const max=getSegVagaForDay(ev,_escDay,_escCid,segId);el.textContent='0/'+max+' vagas';el.style.color='var(--warn)';}
   });
 }
 
