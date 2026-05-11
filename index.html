@@ -1,9 +1,20 @@
 <!DOCTYPE html>
 <!--
   Holy Events Manager
-  Versão: 1.4.6
+  Versão: 1.4.7
   Data: 2026-05-08
+
+  TODO — Bugs conhecidos pendentes:
+    [ ] Holy Drinks — contador no OPS abre com 0 em vez de mostrar as vagas padrão do evento
+    [ ] Holy Drinks — vagas padrão não refletem no calendário e tela de escalas sem abrir OPS
+    [ ] Tooltip — posicionamento ainda pode cortar dependendo do contexto
+
+  TODO — Funcionalidades planejadas:
+    [ ] Disponibilidade de operador por data (operador informa dias disponíveis)
+    [ ] Copiar escala — tratar dias com vagas override diferentes e operadores indisponíveis
+    [ ] Notificações externas (WhatsApp/email/SMS) — requer backend
   Histórico:
+    1.4.7 - Holy startup defaults, OPS qty por segmento, tooltip fixed position
     1.4.6 - Fix {id,segId} em todos handlers OPS, tooltip ChatGPT
     1.4.5 - Merge OPS da v1.3.9 (corrige backtick bug), header de versão, tooltip CSS
     1.4.4 - Tentativa fix backtick label (revertida)
@@ -238,23 +249,20 @@ textarea{resize:vertical;min-height:70px;}
 }
 .tooltip-wrap .tooltip-text{
   display:none;
-  position:absolute;
-  bottom:calc(100% + 8px);
-  right:0;
-  transform:none;
+  position:fixed;
   background:var(--dark);
-  border:1px solid rgba(255,255,255,0.15);
+  border:1px solid rgba(255,255,255,0.2);
   border-radius:6px;
-  padding:6px 10px;
+  padding:7px 11px;
   font-size:11px;
   color:var(--text);
   white-space:normal;
-  z-index:500;
-  min-width:180px;
+  z-index:9999;
   max-width:240px;
   text-align:left;
   pointer-events:none;
-  box-shadow:0 4px 16px rgba(0,0,0,0.4);
+  box-shadow:0 4px 20px rgba(0,0,0,0.6);
+  line-height:1.4;
 }
 .tooltip-wrap:hover .tooltip-text{display:block;}
 
@@ -967,6 +975,8 @@ function _enterApp(){
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('mainApp').style.display='block';
   autoArchiveCheck();
+  // Apply Holy Drinks defaults to all active events on startup
+  DB.eventos.filter(isActive).forEach(ev=>applyHolyDefaults(ev.id));
   nav('dashboard');
   if(_showMigrationToast){
     setTimeout(()=>showToast('✓ Dados migrados para versão '+DB_VERSION+' automaticamente'),600);
@@ -1871,20 +1881,22 @@ function openEscDia(dateKey){
       const bookingsElsewhere=opBookingsOnDay[op.id]||0;
       const availableCapacity=Math.max(0,capacidade-bookingsElsewhere);
       const currentQty=current.filter(s=>(typeof s==='object'?s.id:s)===op.id).length;
+      const currentQtyInSeg=current.filter(s=>(typeof s==='object'?(s.id===op.id&&s.segId===sc.segId):(s===op.id))).length;
       const isLocked=availableCapacity===0&&currentQty===0;
       if(capacidade>1){
         const otherSlots=current.filter(s=>{const sid=typeof s==='object'?s.id:s;return sid!==op.id&&opsInSeg.some(o=>o.id===sid);}).length;
-        const maxQty=Math.min(availableCapacity,vagasSeg-otherSlots);
-        html+=`<div id="lbl_${op.id}_${sc.segId}" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:${currentQty>0?'rgba(223,178,80,0.06)':'var(--dark3)'};border:1px solid ${currentQty>0?'rgba(223,178,80,0.2)':'rgba(255,255,255,0.05)'};border-radius:8px;margin-bottom:4px;${isLocked?'opacity:0.45':''}">
+        const usedInOtherSegs=currentQty-currentQtyInSeg; // slots used by this op in OTHER segments
+        const maxQty=Math.min(availableCapacity-usedInOtherSegs,vagasSeg-otherSlots);
+        html+=`<div id="lbl_${op.id}_${sc.segId}" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:${currentQtyInSeg>0?'rgba(223,178,80,0.06)':'var(--dark3)'};border:1px solid ${currentQtyInSeg>0?'rgba(223,178,80,0.2)':'rgba(255,255,255,0.05)'};border-radius:8px;margin-bottom:4px;${isLocked?'opacity:0.45':''}">
           <div style="flex:1">
             <div style="font-weight:600">${op.nome}${op.isHoly?' ✦':''} <span style="font-size:10px;background:rgba(223,178,80,0.15);color:var(--gold);padding:1px 5px;border-radius:3px">cap.×${capacidade}</span>${isLocked?` <span style="font-size:10px;color:var(--amber)">sem disponibilidade</span>`:''}</div>
             <div style="font-size:11px;color:var(--text-muted)">${op.produto}</div>
           </div>
           <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
             <span style="font-size:11px;color:var(--text-muted)">Vagas:</span>
-            <button onclick="changeOpQty(${op.id},'${sc.segId}',${vagasSeg},-1)" style="width:26px;height:26px;border-radius:50%;background:var(--surface);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-size:16px;cursor:pointer;line-height:1" ${currentQty===0?'disabled':''}>−</button>
-            <span id="qty_${op.id}_${sc.segId}" style="font-size:15px;font-weight:700;color:var(--gold);min-width:20px;text-align:center">${currentQty}</span>
-            <button onclick="changeOpQty(${op.id},'${sc.segId}',${vagasSeg},+1)" style="width:26px;height:26px;border-radius:50%;background:var(--surface);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-size:16px;cursor:pointer;line-height:1" ${currentQty>=maxQty||isLocked?'disabled':''}>+</button>
+            <button onclick="changeOpQty(${op.id},'${sc.segId}',${vagasSeg},-1)" style="width:26px;height:26px;border-radius:50%;background:var(--surface);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-size:16px;cursor:pointer;line-height:1" ${currentQtyInSeg===0?'disabled':''}>−</button>
+            <span id="qty_${op.id}_${sc.segId}" style="font-size:15px;font-weight:700;color:var(--gold);min-width:20px;text-align:center">${currentQtyInSeg}</span>
+            <button onclick="changeOpQty(${op.id},'${sc.segId}',${vagasSeg},+1)" style="width:26px;height:26px;border-radius:50%;background:var(--surface);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-size:16px;cursor:pointer;line-height:1" ${currentQtyInSeg>=maxQty||isLocked?'disabled':''}>+</button>
           </div>
         </div>`;
       } else {
@@ -2496,6 +2508,22 @@ document.querySelectorAll('.popup-overlay').forEach(o=>o.addEventListener('click
 // =============================================
 // DEBUG HELPERS (acesse via console do navegador)
 // =============================================
+// Position fixed tooltips on mouseover to avoid clipping by overflow parents
+document.addEventListener('mouseover',function(e){
+  const wrap=e.target.closest('.tooltip-wrap');
+  if(!wrap) return;
+  const tip=wrap.querySelector('.tooltip-text');
+  if(!tip) return;
+  const rect=wrap.getBoundingClientRect();
+  const tipW=220;
+  let left=rect.right-tipW;
+  if(left<8) left=8;
+  if(left+tipW>window.innerWidth-8) left=window.innerWidth-tipW-8;
+  tip.style.left=left+'px';
+  tip.style.top=(rect.top-8)+'px';
+  tip.style.transform='translateY(-100%)';
+});
+
 window.holyDebug={
   status:()=>DB.eventos.map(ev=>({
     id:ev.id,nome:ev.nome,status:ev.status,
