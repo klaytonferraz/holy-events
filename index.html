@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Holy Events Manager
-  Versão: 1.4.7
+  Versão: 1.4.8
   Data: 2026-05-08
 
   TODO — Bugs conhecidos pendentes:
@@ -14,6 +14,7 @@
     [ ] Copiar escala — tratar dias com vagas override diferentes e operadores indisponíveis
     [ ] Notificações externas (WhatsApp/email/SMS) — requer backend
   Histórico:
+    1.4.8 - Disponibilidade operador (bloqueios), copiar escala com aviso indisponível
     1.4.7 - Holy startup defaults, OPS qty por segmento, tooltip fixed position
     1.4.6 - Fix {id,segId} em todos handlers OPS, tooltip ChatGPT
     1.4.5 - Merge OPS da v1.3.9 (corrige backtick bug), header de versão, tooltip CSS
@@ -239,6 +240,23 @@ textarea{resize:vertical;min-height:70px;}
 .cal-view-day.today{border-color:var(--gold);}
 .cal-view-day.past{opacity:0.45;}
 .cal-view-ev{font-size:10px;padding:2px 5px;border-radius:3px;margin-top:3px;font-weight:600;}
+
+
+/* BLOQUEIOS CALENDAR */
+.bloq-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:8px;}
+.bloq-cal-header{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:2px;}
+.bloq-cal-header span{font-size:9px;text-align:center;color:var(--text-muted);font-weight:600;text-transform:uppercase;}
+.bloq-day{padding:4px 2px;border-radius:4px;font-size:11px;text-align:center;cursor:pointer;border:1px solid rgba(255,255,255,0.06);color:var(--text-muted);transition:all 0.15s;}
+.bloq-day:hover{border-color:var(--red);color:var(--red);}
+.bloq-day.bloqueado{background:rgba(224,82,82,0.15);border-color:var(--red);color:var(--red);font-weight:700;}
+.bloq-day.past{opacity:0.3;cursor:default;}
+.bloq-day.empty{border:none;cursor:default;}
+.bloq-month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.bloq-month-nav button{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;padding:2px 8px;}
+.bloq-month-nav button:hover{color:var(--text);}
+.bloq-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;}
+.bloq-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:rgba(224,82,82,0.12);border:1px solid rgba(224,82,82,0.3);border-radius:4px;font-size:11px;color:var(--red);}
+.bloq-tag button{background:none;border:none;color:var(--red);cursor:pointer;padding:0;font-size:12px;line-height:1;}
 
 /* TOOLTIP */
 .tooltip-wrap{
@@ -642,6 +660,18 @@ textarea{resize:vertical;min-height:70px;}
         <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Número de operações que pode realizar ao mesmo tempo num mesmo dia. Padrão: 1 (exclusivo por dia).</div>
       </div>
       <div class="form-group"><label>Observações</label><textarea id="opObs"></textarea></div>
+      <div class="form-group">
+        <label>Datas de Indisponibilidade</label>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">Marque os dias em que este operador NÃO está disponível. Ele aparecerá com 🚫 na tela de escalas nessas datas.</div>
+        <div class="bloq-month-nav">
+          <button onclick="bloqNavMonth(-1)">‹</button>
+          <span id="bloqMonthLabel" style="font-size:13px;font-weight:600;color:var(--gold)"></span>
+          <button onclick="bloqNavMonth(+1)">›</button>
+        </div>
+        <div class="bloq-cal-header"><span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span></div>
+        <div class="bloq-cal" id="bloqCal"></div>
+        <div class="bloq-tags" id="bloqTags"></div>
+      </div>
     </div>
     <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('mOperador')">Cancelar</button><button class="btn btn-gold" onclick="salvarOperador()">Salvar</button></div>
   </div>
@@ -765,7 +795,7 @@ const EV_STATUS_LABEL={ativo:'Ativo',concluido:'Concluído',cancelado:'Cancelado
 // =============================================
 // DATABASE
 // =============================================
-const DB_VERSION=8; // v8: escala uses [{id,segId},...] slot format
+const DB_VERSION=9; // v9: bloqueios de operadores por data // v8: escala uses [{id,segId},...] slot format
 
 function loadDB(){
   try{
@@ -794,12 +824,12 @@ function migrateDB(old){
   // Migrate operadores — add capacidade if missing, remove seg5 from Holy Drinks
   if(old.operadores&&old.operadores.length){
     fresh.operadores=old.operadores.map(op=>({
-      capacidade:1,
+      capacidade:1,bloqueios:[],
       ...op,
       segmentos:(op.segmentos||[])
         .filter(s=>s!=='seg5')
         .concat(op.segmentos?.includes('seg5')&&!op.segmentos?.includes('seg2')?['seg2']:[]),
-      // Set Holy Drinks to capacidade 6
+      bloqueios:op.bloqueios||[],
       ...(op.isHoly?{capacidade:6}:{})
     }));
   }
@@ -1889,7 +1919,7 @@ function openEscDia(dateKey){
         const maxQty=Math.min(availableCapacity-usedInOtherSegs,vagasSeg-otherSlots);
         html+=`<div id="lbl_${op.id}_${sc.segId}" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:${currentQtyInSeg>0?'rgba(223,178,80,0.06)':'var(--dark3)'};border:1px solid ${currentQtyInSeg>0?'rgba(223,178,80,0.2)':'rgba(255,255,255,0.05)'};border-radius:8px;margin-bottom:4px;${isLocked?'opacity:0.45':''}">
           <div style="flex:1">
-            <div style="font-weight:600">${op.nome}${op.isHoly?' ✦':''} <span style="font-size:10px;background:rgba(223,178,80,0.15);color:var(--gold);padding:1px 5px;border-radius:3px">cap.×${capacidade}</span>${isLocked?` <span style="font-size:10px;color:var(--amber)">sem disponibilidade</span>`:''}</div>
+            <div style="font-weight:600">${op.nome}${op.isHoly?' ✦':''} <span style="font-size:10px;background:rgba(223,178,80,0.15);color:var(--gold);padding:1px 5px;border-radius:3px">cap.×${capacidade}</span>${isBlockedByDate?` <span style="font-size:10px;color:var(--red)">🚫 indisponível</span>`:isLocked?` <span style="font-size:10px;color:var(--amber)">sem disponibilidade</span>`:``}</div>
             <div style="font-size:11px;color:var(--text-muted)">${op.produto}</div>
           </div>
           <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
@@ -2112,20 +2142,35 @@ function filterCopyDest(){
   const cid=_escCid;
   const originDk=document.getElementById('copyOrigin').value;
   const days=getEventDays(ev);
-  // Get origin ops for comparison
-  const originOps=originDk==='__reset__'?[]:getSlots(ev,cid,originDk);
+  const today=new Date(); today.setHours(0,0,0,0);
+  const originSlots=originDk==='__reset__'?[]:getSlots(ev,cid,originDk);
+
+  // Get unique operator IDs in origin
+  const originOpIds=[...new Set(originSlots.map(s=>s.id))];
 
   const destEl=document.getElementById('copyDestDays');
-  destEl.innerHTML=days.filter(d=>{
+  const futureDays=days.filter(d=>d>=today);
+
+  if(!futureDays.length){
+    destEl.innerHTML='<div style="color:var(--text-muted);font-size:12px;padding:8px 0">Nenhum dia futuro disponível</div>';
+    return;
+  }
+
+  destEl.innerHTML=futureDays.map(d=>{
     const dk=d.toISOString().split('T')[0];
-    if(dk===originDk) return false; // exclude origin
-    // If same ops as origin, exclude
-    const dayOps=getSlots(ev,cid,dk);
-    if(originDk!=='__reset__'&&JSON.stringify([...dayOps].sort()===JSON.stringify([...originOps].sort()))) return false;
-    return true;
-  }).map(d=>{
-    const dk=d.toISOString().split('T')[0];
-    return`<label class="check-pill" onclick="this.classList.toggle('checked')" style="font-size:11px"><input type="hidden" data-dk="${dk}"> ${DIAS_SEMANA[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}</label>`;
+    if(dk===originDk) return ''; // exclude origin
+
+    // Check how many origin operators are blocked on this dest day
+    const blockedOps=originOpIds.filter(opId=>{
+      const op=DB.operadores.find(o=>o.id===opId);
+      return op&&isOpBloqueado(op,dk);
+    });
+    const hasBlocked=blockedOps.length>0;
+    const blockedNames=blockedOps.map(id=>DB.operadores.find(o=>o.id===id)?.nome||id).join(', ');
+
+    const warnIcon=hasBlocked?` <span class="tooltip-wrap" style="vertical-align:middle"><span style="font-size:11px">⚠️</span><span class="tooltip-text">${blockedOps.length} operador(es) indisponível(is) nesta data: ${blockedNames}. A cópia será feita sem eles.</span></span>`:'';
+
+    return '<label class="check-pill" onclick="this.classList.toggle(\'checked\')" style="font-size:11px"><input type="hidden" data-dk="'+dk+'"> '+DIAS_SEMANA[d.getDay()]+' '+d.getDate()+'/'+(d.getMonth()+1)+warnIcon+'</label>';
   }).join('');
 }
 
@@ -2137,7 +2182,7 @@ function executarCopy(){
   const cid=_escCid;
   if(!ev.escala) ev.escala={}; if(!ev.escala[cid]) ev.escala[cid]={};
   const originDk=document.getElementById('copyOrigin').value;
-  const srcOps=originDk==='__reset__'?[]:((ev.escala[cid]||{})[originDk]||[]);
+  const srcOps=originDk==='__reset__'?[]:getSlots(ev,cid,originDk);
   const dests=[...document.querySelectorAll('#copyDestDays .check-pill.checked input')].map(i=>i.dataset.dk);
   if(!dests.length){showToast('Selecione ao menos um dia de destino');return;}
 
@@ -2145,9 +2190,25 @@ function executarCopy(){
   const destsWithOps=dests.filter(dk=>getSlots(ev,cid,dk).length>0);
 
   const doApply=()=>{
-    dests.forEach(dk=>{ev.escala[cid][dk]=[...srcOps];});
+    let totalSkipped=0;
+    dests.forEach(dk=>{
+      if(originDk==='__reset__'){
+        ev.escala[cid][dk]=[];
+      } else {
+        // Copy only operators NOT blocked on this specific dest day
+        const slotsForDay=srcOps.filter(slot=>{
+          const slotId=typeof slot==='object'?slot.id:slot;
+          const op=DB.operadores.find(o=>o.id===slotId);
+          if(op&&isOpBloqueado(op,dk)){totalSkipped++;return false;}
+          return true;
+        });
+        ev.escala[cid][dk]=[...slotsForDay];
+      }
+    });
     persist();closeModal('mCopyEsc');renderEscala();
-    showToast(originDk==='__reset__'?`${dests.length} dia(s) zerado(s)`:`Escala copiada para ${dests.length} dia(s)!`);
+    let msg=originDk==='__reset__'?`${dests.length} dia(s) zerado(s)`:`Escala copiada para ${dests.length} dia(s)!`;
+    if(totalSkipped>0) msg+=` (${totalSkipped} slot(s) ignorado(s) por indisponibilidade)`;
+    showToast(msg);
   };
 
   if(destsWithOps.length>0){
@@ -2438,10 +2499,114 @@ function renderOperadores(){
     return`<tr><td><div style="font-weight:600">${op.nome}${op.isHoly?' ✦':''}</div>${op.insta?`<div style="font-size:10px;color:var(--text-muted)">${op.insta}</div>`:''}</td><td style="max-width:140px;font-size:12px;color:var(--text-muted)">${op.produto||'—'}</td><td>${segs||'—'}</td><td><span class="tag">${op.tipo||'—'}</span></td><td><div>${op.poc||'—'}</div><div style="font-size:11px;color:var(--text-muted)">${op.tel||''}</div></td><td>${(op.cidades||'').split(',').map(c=>`<span class="city-tag">${c.trim()}</span>`).join('')||'—'}</td><td><span class="badge ${STATUS_BADGE[op.status]||'badge-blue'}">${op.status}</span></td><td><div class="actions-cell"><button class="btn btn-outline btn-sm" onclick="editOp(${op.id})">Editar</button><button class="btn btn-danger btn-sm" onclick="delOp(${op.id})">✕</button></div></td></tr>`;
   }).join('');
 }
-function openModalOp(){_editOpId=null;document.getElementById('mOpTitle').textContent='Novo Operador';['opNome','opProduto','opPoc','opTel','opInsta','opCids','opCarga','opVolt','opDim','opObs'].forEach(id=>document.getElementById(id).value='');document.getElementById('opCapacidade').value=1;document.getElementById('opTipo').value='Truck';document.getElementById('opStatus').value='Contratado';buildOpSegs([]);document.getElementById('mOperador').classList.add('open');}
-function editOp(id){const op=DB.operadores.find(o=>o.id===id);if(!op)return;_editOpId=id;document.getElementById('mOpTitle').textContent='Editar Operador';document.getElementById('opNome').value=op.nome||'';document.getElementById('opProduto').value=op.produto||'';document.getElementById('opPoc').value=op.poc||'';document.getElementById('opTel').value=op.tel||'';document.getElementById('opInsta').value=op.insta||'';document.getElementById('opCids').value=op.cidades||'';document.getElementById('opCarga').value=op.carga||'';document.getElementById('opVolt').value=op.volt||'';document.getElementById('opDim').value=op.dim||'';document.getElementById('opObs').value=op.obs||'';document.getElementById('opCapacidade').value=op.capacidade||1;document.getElementById('opTipo').value=op.tipo||'Truck';document.getElementById('opStatus').value=op.status||'Contratado';buildOpSegs(op.segmentos||[]);document.getElementById('mOperador').classList.add('open');}
-function buildOpSegs(sel){document.getElementById('opSegs').innerHTML=DB.segmentos.map(seg=>{const checked=sel.includes(seg.id);return`<label class="check-pill ${checked?'checked':''}" onclick="this.classList.toggle('checked')" style="${checked?'border-color:'+seg.cor+';color:'+seg.cor:''}"><input type="hidden" data-segid="${seg.id}"> ${seg.icone} ${seg.nome}</label>`;}).join('');}
-function salvarOperador(){const nome=document.getElementById('opNome').value.trim();if(!nome){showToast('Informe o nome');return;}const segs=[...document.querySelectorAll('#opSegs .check-pill.checked input')].map(i=>i.dataset.segid);const data={nome,produto:document.getElementById('opProduto').value,poc:document.getElementById('opPoc').value,tel:document.getElementById('opTel').value,insta:document.getElementById('opInsta').value,cidades:document.getElementById('opCids').value,carga:document.getElementById('opCarga').value,volt:document.getElementById('opVolt').value,dim:document.getElementById('opDim').value,obs:document.getElementById('opObs').value,tipo:document.getElementById('opTipo').value,status:document.getElementById('opStatus').value,capacidade:parseInt(document.getElementById('opCapacidade').value)||1,segmentos:segs};if(_editOpId){const idx=DB.operadores.findIndex(o=>o.id===_editOpId);DB.operadores[idx]={...DB.operadores[idx],...data};}else{data.id=Date.now();DB.operadores.push(data);}persist();closeModal('mOperador');renderOperadores();showToast('Operador salvo!');}
+let _opBloqueios=[];
+let _bloqCalMonth=new Date();
+
+function bloqNavMonth(delta){
+  _bloqCalMonth=new Date(_bloqCalMonth.getFullYear(),_bloqCalMonth.getMonth()+delta,1);
+  renderBloqCal();
+}
+
+function renderBloqCal(){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const y=_bloqCalMonth.getFullYear(), m=_bloqCalMonth.getMonth();
+  const label=document.getElementById('bloqMonthLabel');
+  if(label) label.textContent=MESES[m]+' '+y;
+  const cal=document.getElementById('bloqCal');
+  const tags=document.getElementById('bloqTags');
+  if(!cal||!tags) return;
+
+  const firstDay=new Date(y,m,1).getDay();
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  let html='';
+  for(let i=0;i<firstDay;i++) html+='<div class="bloq-day empty"></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const dk=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const date=new Date(dk+'T00:00:00');
+    const isPast=date<today;
+    const isBloq=_opBloqueios.includes(dk);
+    const bloqClass='bloq-day'+(isBloq?' bloqueado':''  )+(isPast?' past':'');
+    html+='<div class="'+bloqClass+'" data-dk="'+dk+'" onclick="handleBloqClick(this)" title="'+dk+'">'+d+'</div>';
+  }
+  cal.innerHTML=html;
+
+  // Tags — only future ones
+  const futureBloqs=_opBloqueios.filter(dk=>new Date(dk+'T00:00:00')>=today).sort();
+  tags.innerHTML=futureBloqs.map(dk=>'<span class="bloq-tag">'+fmtDate(dk)+'<button data-dk="'+dk+'" onclick="removeBloqByEl(this)">×</button></span>').join('');
+}
+
+function handleBloqClick(el){const dk=el.getAttribute('data-dk');if(dk)toggleBloq(dk);}
+function toggleBloq(dk){
+  const date=new Date(dk+'T00:00:00'); const today=new Date(); today.setHours(0,0,0,0);
+  if(date<today){showToast('Não é possível bloquear datas passadas');return;}
+  const idx=_opBloqueios.indexOf(dk);
+  if(idx>=0) _opBloqueios.splice(idx,1);
+  else _opBloqueios.push(dk);
+  renderBloqCal();
+}
+
+function removeBloqByEl(el){const dk=el.getAttribute('data-dk');if(dk)removeBloq(dk);}
+function removeBloq(dk){
+  _opBloqueios=_opBloqueios.filter(d=>d!==dk);
+  renderBloqCal();
+}
+
+// Helper: check if an operator is blocked on a given date
+function isOpBloqueado(op,dateKey){
+  return (op.bloqueios||[]).includes(dateKey);
+}
+
+function openModalOp(){
+  _editOpId=null;_opBloqueios=[];_bloqCalMonth=new Date();
+  document.getElementById('mOpTitle').textContent='Novo Operador';
+  ['opNome','opProduto','opPoc','opTel','opInsta','opCids','opCarga','opVolt','opDim','opObs'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('opCapacidade').value=1;
+  document.getElementById('opTipo').value='Truck';
+  document.getElementById('opStatus').value='Contratado';
+  buildOpSegs([]);renderBloqCal();
+  document.getElementById('mOperador').classList.add('open');
+}
+
+function editOp(id){
+  const op=DB.operadores.find(o=>o.id===id);if(!op)return;
+  _editOpId=id;_opBloqueios=[...(op.bloqueios||[])];_bloqCalMonth=new Date();
+  document.getElementById('mOpTitle').textContent='Editar Operador';
+  document.getElementById('opNome').value=op.nome||'';
+  document.getElementById('opProduto').value=op.produto||'';
+  document.getElementById('opPoc').value=op.poc||'';
+  document.getElementById('opTel').value=op.tel||'';
+  document.getElementById('opInsta').value=op.insta||'';
+  document.getElementById('opCids').value=op.cidades||'';
+  document.getElementById('opCarga').value=op.carga||'';
+  document.getElementById('opVolt').value=op.volt||'';
+  document.getElementById('opDim').value=op.dim||'';
+  document.getElementById('opObs').value=op.obs||'';
+  document.getElementById('opCapacidade').value=op.capacidade||1;
+  document.getElementById('opTipo').value=op.tipo||'Truck';
+  document.getElementById('opStatus').value=op.status||'Contratado';
+  buildOpSegs(op.segmentos||[]);renderBloqCal();
+  document.getElementById('mOperador').classList.add('open');
+}
+
+function salvarOperador(){
+  const nome=document.getElementById('opNome').value.trim();
+  if(!nome){showToast('Informe o nome');return;}
+  const segs=[...document.querySelectorAll('#opSegs .check-pill.checked input')].map(i=>i.dataset.segid);
+  const data={
+    nome,produto:document.getElementById('opProduto').value,
+    poc:document.getElementById('opPoc').value,tel:document.getElementById('opTel').value,
+    insta:document.getElementById('opInsta').value,cidades:document.getElementById('opCids').value,
+    carga:document.getElementById('opCarga').value,volt:document.getElementById('opVolt').value,
+    dim:document.getElementById('opDim').value,obs:document.getElementById('opObs').value,
+    tipo:document.getElementById('opTipo').value,status:document.getElementById('opStatus').value,
+    capacidade:parseInt(document.getElementById('opCapacidade').value)||1,
+    bloqueios:[..._opBloqueios],segmentos:segs
+  };
+  if(_editOpId){const idx=DB.operadores.findIndex(o=>o.id===_editOpId);DB.operadores[idx]={...DB.operadores[idx],...data};}
+  else{data.id=Date.now();DB.operadores.push(data);}
+  persist();closeModal('mOperador');renderOperadores();showToast('Operador salvo!');
+}
+
 function delOp(id){if(!confirm('Remover operador?'))return;DB.operadores=DB.operadores.filter(o=>o.id!==id);persist();renderOperadores();showToast('Removido');}
 
 // =============================================
