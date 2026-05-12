@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Holy Events Manager
-  Versão: 1.5.0
+  Versão: 1.5.1
   Data: 2026-05-08
 
   TODO — Bugs conhecidos pendentes:
@@ -14,6 +14,7 @@
     [ ] Copiar escala — tratar dias com vagas override diferentes e operadores indisponíveis
     [ ] Notificações externas (WhatsApp/email/SMS) — requer backend
   Histórico:
+    1.5.1 - Restaura buildOpSegs (editOp voltou a funcionar)
     1.5.0 - Fix OPS: isBlockedByDate indefinido, _escDiaCurrent filter com {id,segId}
     1.4.9 - Fix backtick buildEvSegs e renderOperadores (OPS e editOp voltam a funcionar)
     1.4.8 - Disponibilidade operador (bloqueios), copiar escala com aviso indisponível
@@ -2577,6 +2578,8 @@ function removeBloq(dk){
 function isOpBloqueado(op,dateKey){
   return (op.bloqueios||[]).includes(dateKey);
 }
+
+function buildOpSegs(sel){document.getElementById('opSegs').innerHTML=DB.segmentos.map(seg=>{const checked=sel.includes(seg.id);return'<label class="check-pill '+(checked?'checked':'')+'" onclick="this.classList.toggle(\'checked\')" style="'+(checked?'border-color:'+seg.cor+';color:'+seg.cor:'')+'"><input type="hidden" data-segid="'+seg.id+'"> '+seg.icone+' '+seg.nome+'</label>';}).join('');}
 
 function openModalOp(){
   _editOpId=null;_opBloqueios=[];_bloqCalMonth=new Date();
