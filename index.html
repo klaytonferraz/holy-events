@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Holy Events Manager
-  Versão: 1.4.9
+  Versão: 1.5.0
   Data: 2026-05-08
 
   TODO — Bugs conhecidos pendentes:
@@ -14,6 +14,7 @@
     [ ] Copiar escala — tratar dias com vagas override diferentes e operadores indisponíveis
     [ ] Notificações externas (WhatsApp/email/SMS) — requer backend
   Histórico:
+    1.5.0 - Fix OPS: isBlockedByDate indefinido, _escDiaCurrent filter com {id,segId}
     1.4.9 - Fix backtick buildEvSegs e renderOperadores (OPS e editOp voltam a funcionar)
     1.4.8 - Disponibilidade operador (bloqueios), copiar escala com aviso indisponível
     1.4.7 - Holy startup defaults, OPS qty por segmento, tooltip fixed position
@@ -1918,6 +1919,7 @@ function openEscDia(dateKey){
       const currentQty=current.filter(s=>(typeof s==='object'?s.id:s)===op.id).length;
       const currentQtyInSeg=current.filter(s=>(typeof s==='object'?(s.id===op.id&&s.segId===sc.segId):(s===op.id))).length;
       const isLocked=availableCapacity===0&&currentQty===0;
+      const isBlockedByDate=isOpBloqueado(op,dateKey);
       if(capacidade>1){
         const otherSlots=current.filter(s=>{const sid=typeof s==='object'?s.id:s;return sid!==op.id&&opsInSeg.some(o=>o.id===sid);}).length;
         const usedInOtherSegs=currentQty-currentQtyInSeg; // slots used by this op in OTHER segments
@@ -1938,13 +1940,15 @@ function openEscDia(dateKey){
         const checked=currentQty>0;
         const lockTip=isLocked?("Já escalado em "+bookingsElsewhere+" op(s) neste dia (cap: "+capacidade+")"):'' ;
         // Build label — no nested backticks
-        const lblBg=isLocked?'rgba(255,255,255,0.02)':checked?'rgba(223,178,80,0.06)':'var(--dark3)';
-        const lblBorder=isLocked?'rgba(255,255,255,0.04)':checked?'rgba(223,178,80,0.2)':'rgba(255,255,255,0.05)';
-        const lblCursor=isLocked?'cursor:not-allowed;opacity:0.45':'cursor:pointer';
-        const lblAction=isLocked?('title="'+lockTip+'"'):('onclick="onEscOpClick(this,'+op.id+",\'"+sc.segId+"\',"+vagasSeg+')"');
+        const lblBg=isBlockedByDate?'rgba(224,82,82,0.04)':isLocked?'rgba(255,255,255,0.02)':checked?'rgba(223,178,80,0.06)':'var(--dark3)';
+        const lblBorder=isBlockedByDate?'rgba(224,82,82,0.2)':isLocked?'rgba(255,255,255,0.04)':checked?'rgba(223,178,80,0.2)':'rgba(255,255,255,0.05)';
+        const lblCursor=(isLocked||isBlockedByDate)?'cursor:not-allowed;opacity:0.55':'cursor:pointer';
+        const lockTipFull=isBlockedByDate?'Operador indisponível nesta data':isLocked?('Já escalado em '+bookingsElsewhere+' op(s) neste dia (cap: '+capacidade+')'):'';
+        const lblAction=(isLocked||isBlockedByDate)?('title="'+lockTipFull+'"'):('onclick="onEscOpClick(this,'+op.id+",'"+sc.segId+"',"+vagasSeg+')"');
+        const blockedLabel=isBlockedByDate?'<span style="font-size:10px;color:var(--red)">🚫 indisponível</span>':isLocked?'<span style="font-size:10px;color:var(--amber)">ocupado</span>':'';
         html+='<label id="lbl_'+op.id+'_'+sc.segId+'" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:'+lblBg+';border:1px solid '+lblBorder+';border-radius:8px;'+lblCursor+';margin-bottom:4px;font-size:13px;font-weight:normal;text-transform:none;letter-spacing:0;color:var(--text)" '+lblAction+'>'
-          +'<input type="checkbox" name="escOp" value="'+op.id+'" data-seg="'+sc.segId+'" '+(checked?'checked':'')+' '+(isLocked?'disabled':'')+' style="width:auto;accent-color:var(--gold)">'
-          +'<div style="flex:1"><div style="font-weight:600">'+op.nome+(op.isHoly?' ✦':'')+(isLocked?'<span style="font-size:10px;color:var(--amber)">ocupado</span>':'')+' </div>'
+          +'<input type="checkbox" name="escOp" value="'+op.id+'" data-seg="'+sc.segId+'" '+(checked?'checked':'')+' '+((isLocked||isBlockedByDate)?'disabled':'')+' style="width:auto;accent-color:var(--gold)">'
+          +'<div style="flex:1"><div style="font-weight:600">'+op.nome+(op.isHoly?' ✦':'')+blockedLabel+' </div>'
           +'<div style="font-size:11px;color:var(--text-muted)">'+op.produto+'</div></div>'
           +'<span class="badge '+(STATUS_BADGE[op.status]||'badge-blue')+'" style="font-size:10px">'+op.status+'</span>'
           +'</label>';
@@ -1965,8 +1969,9 @@ function openEscDia(dateKey){
     if(!ev2) return;
     (ev2.segmentosConfig||[]).forEach(sc=>{
       const vagasSeg=getSegVagaForDay(ev2,dateKey,_escCid,sc.segId);
-      const filled=window._escDiaCurrent.filter(id=>{
-        const op=DB.operadores.find(o=>o.id===id);
+      const filled=window._escDiaCurrent.filter(s=>{
+        const sid=typeof s==='object'?s.id:s;
+        const op=DB.operadores.find(o=>o.id===sid);
         return op?.segmentos?.includes(sc.segId);
       }).length;
       if(filled>=vagasSeg){
