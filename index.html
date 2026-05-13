@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Holy Events Manager
-  Versão: 1.5.1
+  Versão: 1.5.2
   Data: 2026-05-08
 
   TODO — Bugs conhecidos pendentes:
@@ -14,6 +14,7 @@
     [ ] Copiar escala — tratar dias com vagas override diferentes e operadores indisponíveis
     [ ] Notificações externas (WhatsApp/email/SMS) — requer backend
   Histórico:
+    1.5.2 - Bloqueios bulk actions, Holy smart update, OPS checkboxes desabilitados, lock cross-segmento
     1.5.1 - Restaura buildOpSegs (editOp voltou a funcionar)
     1.5.0 - Fix OPS: isBlockedByDate indefinido, _escDiaCurrent filter com {id,segId}
     1.4.9 - Fix backtick buildEvSegs e renderOperadores (OPS e editOp voltam a funcionar)
@@ -670,6 +671,12 @@ textarea{resize:vertical;min-height:70px;}
           <button onclick="bloqNavMonth(-1)">‹</button>
           <span id="bloqMonthLabel" style="font-size:13px;font-weight:600;color:var(--gold)"></span>
           <button onclick="bloqNavMonth(+1)">›</button>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="bloqMarcarMes(true)" title="Bloquear todos os dias do mês atual">🚫 Bloquear mês</button>
+          <button class="btn btn-ghost btn-sm" onclick="bloqMarcarMes(false)" title="Desmarcar todos do mês atual">✓ Liberar mês</button>
+          <button class="btn btn-ghost btn-sm" onclick="bloqInverterMes()" title="Inverter seleção do mês">⇄ Inverter</button>
+          <button class="btn btn-danger btn-sm" onclick="bloqLimparTudo()" title="Remover todos os bloqueios">✕ Limpar tudo</button>
         </div>
         <div class="bloq-cal-header"><span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span></div>
         <div class="bloq-cal" id="bloqCal"></div>
@@ -1696,7 +1703,7 @@ function applyHolyDefaults(evId){
   const seg2Config=(ev.segmentosConfig||[]).find(sc=>sc.segId==='seg2');
   if(!seg2Config) return;
   const holyVagas=seg2Config.holyVagas||0;
-  if(holyVagas===0) return;
+  const vagasSeg2=seg2Config.vagas||0;
 
   const days=getEventDays(ev);
   let changed=false;
@@ -1705,11 +1712,48 @@ function applyHolyDefaults(evId){
     days.forEach(d=>{
       const dk=d.toISOString().split('T')[0];
       const existing=getSlots(ev,cid,dk);
-      // Only fill if day has NO operators at all
-      if(existing.length===0){
+      const currentHolyCount=existing.filter(s=>s.id===holyOp.id&&s.segId==='seg2').length;
+
+      if(holyVagas===0){
+        // Remove all holy slots from seg2 in empty days (or days with only holy)
+        const nonHoly=existing.filter(s=>!(s.id===holyOp.id&&s.segId==='seg2'));
+        if(nonHoly.length!==existing.length){
+          ev.escala[cid][dk]=nonHoly;
+          changed=true;
+        }
+        return;
+      }
+
+      if(currentHolyCount===holyVagas) return; // Already correct
+
+      if(currentHolyCount===0 && existing.length===0){
+        // Empty day — fill with holy defaults
         const slots=[];
         for(let i=0;i<holyVagas;i++) slots.push({id:holyOp.id,segId:'seg2'});
         ev.escala[cid][dk]=slots;
+        changed=true;
+      } else if(currentHolyCount<holyVagas){
+        // Need to ADD holy slots — only if seg2 has room
+        const otherSeg2=existing.filter(s=>s.segId==='seg2'&&s.id!==holyOp.id).length;
+        const totalSeg2=existing.filter(s=>s.segId==='seg2').length;
+        const roomAvailable=vagasSeg2-totalSeg2;
+        const toAdd=Math.min(holyVagas-currentHolyCount, roomAvailable);
+        if(toAdd>0){
+          for(let i=0;i<toAdd;i++) existing.push({id:holyOp.id,segId:'seg2'});
+          ev.escala[cid][dk]=[...existing];
+          changed=true;
+        }
+      } else if(currentHolyCount>holyVagas){
+        // Need to REMOVE holy slots — remove excess from end
+        let removeCount=currentHolyCount-holyVagas;
+        const updated=[...existing];
+        for(let i=updated.length-1;i>=0&&removeCount>0;i--){
+          if(updated[i].id===holyOp.id&&updated[i].segId==='seg2'){
+            updated.splice(i,1);
+            removeCount--;
+          }
+        }
+        ev.escala[cid][dk]=updated;
         changed=true;
       }
     });
@@ -1964,27 +2008,16 @@ function openEscDia(dateKey){
   window._holyCienciaConfirmed=false;
   document.getElementById('mEscDia').classList.add('open');
 
-  // After render, lock unchecked labels in segments that are already full
-  requestAnimationFrame(()=>{
-    const ev2=DB.eventos.find(e=>e.id===_escEvId);
-    if(!ev2) return;
-    (ev2.segmentosConfig||[]).forEach(sc=>{
-      const vagasSeg=getSegVagaForDay(ev2,dateKey,_escCid,sc.segId);
-      const filled=window._escDiaCurrent.filter(s=>{
-        const sid=typeof s==='object'?s.id:s;
-        const op=DB.operadores.find(o=>o.id===sid);
-        return op?.segmentos?.includes(sc.segId);
-      }).length;
-      if(filled>=vagasSeg){
-        document.querySelectorAll(`input[name="escOp"][data-seg="${sc.segId}"]`).forEach(cb=>{
-          if(!cb.checked&&!cb.disabled){
-            const lbl=cb.closest('label');
-            if(lbl){lbl.style.cursor='not-allowed';lbl.style.opacity='0.45';lbl.setAttribute('data-locked-full','1');}
-          }
-        });
-      }
+
+  // Mark originally-locked checkboxes and sync all lock states
+  requestAnimationFrame(function(){
+    // Mark checkboxes locked for reasons other than segment/capacity
+    document.querySelectorAll('input[name="escOp"]').forEach(function(cb){
+      if(cb.disabled) cb.setAttribute('data-orig-disabled','1');
     });
+    syncOpsLockState();
   });
+
 }
 
 function changeOpQty(opId,segId,vagasSeg,delta){
@@ -2049,27 +2082,27 @@ function _doChangeQty(opId,segId,vagasSeg,newQtyInSeg,capacidade,opsInSeg){
   if(btnMinus) btnMinus.disabled=(newQtyInSeg===0);
   if(btnPlus) btnPlus.disabled=(newQtyInSeg>=maxInSeg);
 
-  const filledInSeg=window._escDiaCurrent.filter(s=>s.segId===segId).length;
+  const filledInSeg2=window._escDiaCurrent.filter(s=>s.segId===segId).length;
   const vcnt=document.getElementById('vcnt_'+segId);
-  if(vcnt){vcnt.textContent=filledInSeg+'/'+vagasSeg+' vagas';vcnt.style.color=filledInSeg<vagasSeg?'var(--warn)':'var(--green)';}
+  if(vcnt){vcnt.textContent=filledInSeg2+'/'+vagasSeg+' vagas';vcnt.style.color=filledInSeg2<vagasSeg?'var(--warn)':'var(--green)';}
+
+  // Sync lock state across all operators/segments
+  syncOpsLockState();
 }
 
 function onEscOpClick(lbl,opId,segId,maxVagas){
   opId=parseInt(opId);
   const cb=lbl.querySelector('input[type=checkbox]');
+  if(cb&&cb.disabled) return; // truly blocked — ignore click
   if(!window._escDiaCurrent) window._escDiaCurrent=[];
-  const opsInSeg=DB.operadores.filter(op=>op.segmentos&&op.segmentos.includes(segId));
-  // Use {id,segId} format
   const alreadyIn=window._escDiaCurrent.some(s=>s.id===opId&&s.segId===segId);
   const willCheck=!alreadyIn;
 
   if(willCheck){
-    // Check capacity first
     const op=DB.operadores.find(o=>o.id===opId);
     const capacidade=op?.capacidade||1;
     const totalUsedByOp=window._escDiaCurrent.filter(s=>s.id===opId).length;
     if(totalUsedByOp>=capacidade){showToast((op?.nome||'Operador')+' já atingiu o limite de '+capacidade+' operação(ões) simultânea(s)');return;}
-    // Then check segment
     const filledInSeg=window._escDiaCurrent.filter(s=>s.segId===segId).length;
     if(filledInSeg>=maxVagas){showToast('⚠️ Limite de '+maxVagas+' vaga(s) para este segmento atingido');return;}
     window._escDiaCurrent.push({id:opId,segId:segId});
@@ -2081,18 +2114,53 @@ function onEscOpClick(lbl,opId,segId,maxVagas){
   lbl.style.background=willCheck?'rgba(223,178,80,0.06)':'var(--dark3)';
   lbl.style.border='1px solid '+(willCheck?'rgba(223,178,80,0.2)':'rgba(255,255,255,0.05)');
 
+  // Update counter for this segment
   const filledInSeg=window._escDiaCurrent.filter(s=>s.segId===segId).length;
   const el=document.getElementById('vcnt_'+segId);
   if(el){el.textContent=filledInSeg+'/'+maxVagas+' vagas';el.style.color=filledInSeg<maxVagas?'var(--warn)':'var(--green)';}
 
-  // Lock/unlock unchecked labels in this segment
-  document.querySelectorAll('input[name="escOp"][data-seg="'+segId+'"]').forEach(function(otherCb){
-    if(!otherCb.checked&&!otherCb.disabled){
-      const otherLbl=otherCb.closest('label');
-      if(filledInSeg>=maxVagas){
-        otherLbl.style.cursor='not-allowed';otherLbl.style.opacity='0.45';
-      } else {
-        otherLbl.style.cursor='pointer';otherLbl.style.opacity='1';
+  // Sync lock state across ALL segments
+  syncOpsLockState();
+}
+
+// Central lock state sync — called after every escala change
+// Disables checkboxes when: segment is full OR operator reached capacity
+function syncOpsLockState(){
+  if(!window._escDiaCurrent) return;
+  const ev=DB.eventos.find(e=>e.id===_escEvId); if(!ev) return;
+
+  // For each checkbox in the OPS modal, determine if it should be locked
+  document.querySelectorAll('input[name="escOp"]').forEach(function(cb){
+    const opId=parseInt(cb.value);
+    const segId=cb.getAttribute('data-seg');
+    if(!segId) return;
+
+    const op=DB.operadores.find(o=>o.id===opId);
+    if(!op) return;
+
+    const isChecked=cb.checked;
+    if(isChecked) return; // checked ones are never locked by this logic
+
+    const capacidade=op.capacidade||1;
+    const totalUsedByOp=window._escDiaCurrent.filter(s=>s.id===opId).length;
+    const capReached=totalUsedByOp>=capacidade;
+
+    // Get max vagas for this segment
+    const vagasSeg=getSegVagaForDay(ev,_escDay,_escCid,segId);
+    const filledInSeg=window._escDiaCurrent.filter(s=>s.segId===segId).length;
+    const segFull=filledInSeg>=vagasSeg;
+
+    const shouldLock=capReached||segFull;
+    const lbl=cb.closest('label');
+
+    if(shouldLock){
+      cb.disabled=true;
+      if(lbl){lbl.style.cursor='not-allowed';lbl.style.opacity='0.45';}
+    } else {
+      // Only unlock if not originally locked by bloqueio or bookings elsewhere
+      if(!cb.getAttribute('data-orig-disabled')){
+        cb.disabled=false;
+        if(lbl){lbl.style.cursor='pointer';lbl.style.opacity='1';}
       }
     }
   });
@@ -2101,9 +2169,12 @@ function onEscOpClick(lbl,opId,segId,maxVagas){
 function resetEscalaDia(){
   window._escDiaCurrent=[];
   document.querySelectorAll('input[name="escOp"]').forEach(function(cb){
-    cb.checked=false;
-    const lbl=cb.closest('label');
-    if(lbl){lbl.style.background='var(--dark3)';lbl.style.border='1px solid rgba(255,255,255,0.05)';lbl.style.cursor='pointer';lbl.style.opacity='1';}
+    if(!cb.getAttribute('data-orig-disabled')){
+      cb.checked=false;
+      cb.disabled=false;
+      const lbl=cb.closest('label');
+      if(lbl){lbl.style.background='var(--dark3)';lbl.style.border='1px solid rgba(255,255,255,0.05)';lbl.style.cursor='pointer';lbl.style.opacity='1';}
+    }
   });
   document.querySelectorAll('[id^="qty_"]').forEach(function(el){el.textContent='0';});
   document.querySelectorAll('[id^="vcnt_"]').forEach(function(el){
@@ -2527,6 +2598,42 @@ let _bloqCalMonth=new Date();
 
 function bloqNavMonth(delta){
   _bloqCalMonth=new Date(_bloqCalMonth.getFullYear(),_bloqCalMonth.getMonth()+delta,1);
+  renderBloqCal();
+}
+
+// Bulk bloqueios actions
+function bloqMarcarMes(bloquear){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const y=_bloqCalMonth.getFullYear(), m=_bloqCalMonth.getMonth();
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  for(let d=1;d<=daysInMonth;d++){
+    const dk=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const date=new Date(dk+'T00:00:00');
+    if(date<today) continue; // skip past days
+    if(bloquear && !_opBloqueios.includes(dk)) _opBloqueios.push(dk);
+    if(!bloquear) _opBloqueios=_opBloqueios.filter(d=>d!==dk);
+  }
+  renderBloqCal();
+}
+
+function bloqInverterMes(){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const y=_bloqCalMonth.getFullYear(), m=_bloqCalMonth.getMonth();
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  for(let d=1;d<=daysInMonth;d++){
+    const dk=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const date=new Date(dk+'T00:00:00');
+    if(date<today) continue;
+    const idx=_opBloqueios.indexOf(dk);
+    if(idx>=0) _opBloqueios.splice(idx,1);
+    else _opBloqueios.push(dk);
+  }
+  renderBloqCal();
+}
+
+function bloqLimparTudo(){
+  if(!confirm('Remover todos os bloqueios deste operador?')) return;
+  _opBloqueios=[];
   renderBloqCal();
 }
 
