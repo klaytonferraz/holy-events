@@ -26,9 +26,10 @@ module.exports = async function handler(req, res) {
 
   if (req.method === 'PUT') {
     const {
-      segmentosConfig, diasEspeciais,
+      segmentosConfig, diasEspeciais, vagasOverride, horarioOverride,
       clienteId, horarioInicio, horarioFim, publicoDia,
       manuallyClosed, deletedAt, dias,
+      escala: _esc, // escala é gerenciada por /api/escala, ignorar aqui
       ...fields
     } = req.body;
 
@@ -60,6 +61,28 @@ module.exports = async function handler(req, res) {
         const rows = diasEspeciais.map(d => ({ evento_id: id, data: d }));
         await supabase.from('evento_dias_especiais').insert(rows);
       }
+    }
+
+    if (vagasOverride !== undefined) {
+      await supabase.from('vagas_override').delete().eq('evento_id', id);
+      const voRows = [];
+      for (const cid of Object.keys(vagasOverride || {})) {
+        for (const dt of Object.keys(vagasOverride[cid] || {})) {
+          for (const segId of Object.keys(vagasOverride[cid][dt] || {})) {
+            voRows.push({ evento_id: id, cidade: cid, data: dt, seg_id: segId, vagas: vagasOverride[cid][dt][segId] });
+          }
+        }
+      }
+      if (voRows.length > 0) await supabase.from('vagas_override').insert(voRows);
+    }
+
+    if (horarioOverride !== undefined) {
+      await supabase.from('horario_override').delete().eq('evento_id', id);
+      const hoRows = [];
+      for (const dt of Object.keys(horarioOverride || {})) {
+        hoRows.push({ evento_id: id, data: dt, horario_inicio: horarioOverride[dt].inicio, horario_fim: horarioOverride[dt].fim });
+      }
+      if (hoRows.length > 0) await supabase.from('horario_override').insert(hoRows);
     }
 
     return res.status(200).json({ ok: true });

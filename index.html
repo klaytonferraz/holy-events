@@ -873,6 +873,81 @@ function persist(){
   localStorage.setItem('holy_v4',JSON.stringify(DB));
 }
 
+// =============================================
+// API LAYER — sincronização com Supabase
+// =============================================
+async function _apiFetch(path, opts){
+  const r=await fetch('/api'+path,{headers:{'Content-Type':'application/json'},...opts});
+  if(!r.ok){const e=await r.json().catch(()=>({error:r.statusText}));throw new Error(e.error||r.statusText);}
+  return r.json();
+}
+
+function apiSaveEvento(evId){
+  const ev=DB.eventos.find(e=>e.id===evId); if(!ev) return;
+  _apiFetch('/eventos/'+evId,{method:'PUT',body:JSON.stringify(ev)})
+    .catch(e=>console.warn('[API] save evento:',e.message));
+}
+function apiCreateEvento(ev){
+  _apiFetch('/eventos',{method:'POST',body:JSON.stringify(ev)})
+    .catch(e=>console.warn('[API] create evento:',e.message));
+}
+function apiSaveEscalaDia(evId,cidade,data,slots){
+  _apiFetch('/escala',{method:'POST',body:JSON.stringify({eventoId:evId,cidade,data,slots})})
+    .catch(e=>console.warn('[API] save escala:',e.message));
+}
+function apiSaveEscalaMulti(evId,escala){
+  for(const cid of Object.keys(escala||{}))
+    for(const dk of Object.keys(escala[cid]||{}))
+      apiSaveEscalaDia(evId,cid,dk,escala[cid][dk]);
+}
+function apiSaveOperador(op){
+  _apiFetch('/operadores/'+op.id,{method:'PUT',body:JSON.stringify(op)})
+    .catch(e=>console.warn('[API] save operador:',e.message));
+}
+function apiCreateOperador(op){
+  _apiFetch('/operadores',{method:'POST',body:JSON.stringify(op)})
+    .catch(e=>console.warn('[API] create operador:',e.message));
+}
+function apiDeleteOperador(id){
+  _apiFetch('/operadores/'+id,{method:'DELETE'})
+    .catch(e=>console.warn('[API] delete operador:',e.message));
+}
+function apiSaveCliente(cl){
+  _apiFetch('/clientes/'+cl.id,{method:'PUT',body:JSON.stringify(cl)})
+    .catch(e=>console.warn('[API] save cliente:',e.message));
+}
+function apiCreateCliente(cl){
+  _apiFetch('/clientes',{method:'POST',body:JSON.stringify(cl)})
+    .catch(e=>console.warn('[API] create cliente:',e.message));
+}
+function apiDeleteCliente(id){
+  _apiFetch('/clientes/'+id,{method:'DELETE'})
+    .catch(e=>console.warn('[API] delete cliente:',e.message));
+}
+function apiSaveConfig(){
+  _apiFetch('/config',{method:'PUT',body:JSON.stringify(DB.config)})
+    .catch(e=>console.warn('[API] save config:',e.message));
+}
+
+async function _loadFromAPI(){
+  const [ops,cls,evs,segs,cfg]=await Promise.all([
+    _apiFetch('/operadores'),
+    _apiFetch('/clientes'),
+    _apiFetch('/eventos'),
+    _apiFetch('/segmentos'),
+    _apiFetch('/config'),
+  ]);
+  const escalas=await Promise.all(evs.map(ev=>
+    _apiFetch('/escala?eventoId='+ev.id)
+      .then(esc=>({id:ev.id,escala:esc}))
+      .catch(()=>({id:ev.id,escala:{}}))
+  ));
+  const escMap={};
+  escalas.forEach(e=>{escMap[e.id]=e.escala;});
+  return{config:cfg,segmentos:segs,clientes:cls,operadores:ops,
+    eventos:evs.map(ev=>({...ev,escala:escMap[ev.id]||{}}))};
+}
+
 let _showMigrationToast=false;
 
 function defaultDB(){
@@ -946,6 +1021,8 @@ let _archivedVisible=false;
 function autoArchiveCheck(){
   const today=new Date(); today.setHours(0,0,0,0);
   console.group('🔍 autoArchiveCheck — '+today.toISOString().split('T')[0]);
+  const _snapStatus={};
+  DB.eventos.forEach(ev=>{_snapStatus[ev.id]=ev.status;});
   DB.eventos.forEach(ev=>{
     const inicio=ev.inicio?new Date(ev.inicio+'T00:00:00'):null;
     const fim=ev.fim?new Date(ev.fim+'T00:00:00'):null;
@@ -995,6 +1072,7 @@ function autoArchiveCheck(){
   if(removed) console.log(`Removidos ${removed} evento(s) excluído(s) permanentemente`);
   console.groupEnd();
   persist();
+  DB.eventos.forEach(ev=>{if(_snapStatus[ev.id]!==ev.status) apiSaveEvento(ev.id);});
 }
 
 // =============================================
@@ -1037,7 +1115,20 @@ function doLogout(){
 // Auto-enter in dev mode
 if(DEV_MODE){
   currentUser={user:'dev',name:'Dev'};
-  document.addEventListener('DOMContentLoaded',()=>{_enterApp();});
+  document.addEventListener('DOMContentLoaded',async()=>{
+    try{
+      const apiData=await _loadFromAPI();
+      DB.config=apiData.config;
+      DB.segmentos=apiData.segmentos;
+      DB.clientes=apiData.clientes;
+      DB.operadores=apiData.operadores;
+      DB.eventos=apiData.eventos;
+      persist();
+    }catch(e){
+      console.warn('[API] load falhou, usando cache localStorage:',e.message);
+    }
+    _enterApp();
+  });
 }
 
 // =============================================
@@ -1481,7 +1572,7 @@ function arquivarEvento(id,status){
     `Isso moverá o evento para a seção de arquivados com status "${EV_STATUS_LABEL[status]}". Ele não aparecerá mais no dashboard.`,
     ()=>{
       const ev=DB.eventos.find(e=>e.id===id);
-      if(ev){ev.status=status;ev.manuallyClosed=true;persist();renderEventos();showToast('Evento arquivado.');}
+      if(ev){ev.status=status;ev.manuallyClosed=true;persist();apiSaveEvento(ev.id);renderEventos();showToast('Evento arquivado.');}
     }
   );
 }
@@ -1493,7 +1584,7 @@ function excluirEvento(id){
     `O evento será movido para a lixeira e excluído permanentemente após ${DB.config.trashDays||30} dias. Você pode restaurá-lo antes desse prazo.`,
     ()=>{
       const ev=DB.eventos.find(e=>e.id===id);
-      if(ev){ev.status='excluido';ev.deletedAt=new Date().toISOString();persist();renderEventos();showToast('Evento movido para a lixeira.');}
+      if(ev){ev.status='excluido';ev.deletedAt=new Date().toISOString();persist();apiSaveEvento(ev.id);renderEventos();showToast('Evento movido para a lixeira.');}
     },
     'Mover para Lixeira'
   );
@@ -1502,7 +1593,7 @@ function excluirEvento(id){
 function restaurarEvento(id){
   const ev=DB.eventos.find(e=>e.id===id); if(!ev) return;
   ev.status='ativo'; delete ev.deletedAt; delete ev.manuallyClosed;
-  persist(); renderEventos(); showToast('Evento restaurado!');
+  persist(); apiSaveEvento(id); renderEventos(); showToast('Evento restaurado!');
 }
 
 function confirmarReativar(){
@@ -1758,7 +1849,7 @@ function applyHolyDefaults(evId){
       }
     });
   });
-  if(changed) persist();
+  if(changed){persist();apiSaveEscalaMulti(evId,ev.escala);}
 }
 
 function _aplicarSalvamentoEvento(data){
@@ -1767,6 +1858,7 @@ function _aplicarSalvamentoEvento(data){
     const ev=DB.eventos.find(e=>e.id===_editEvId);
     Object.assign(ev,data);
     savedEvId=_editEvId;
+    apiSaveEvento(savedEvId);
   } else {
     data.id='ev'+Date.now();
     data.escala={};
@@ -1774,6 +1866,7 @@ function _aplicarSalvamentoEvento(data){
     data.horarioOverride={};
     DB.eventos.push(data);
     savedEvId=data.id;
+    apiCreateEvento(data);
   }
   if(data.clienteId){
     const cl=DB.clientes.find(c=>c.id===data.clienteId);
@@ -2190,7 +2283,7 @@ function salvarEscDia(){
   if(!ev.escala) ev.escala={};
   if(!ev.escala[cid]) ev.escala[cid]={};
   ev.escala[cid][_escDay]=[...(window._escDiaCurrent||[])];
-  persist();closeModal('mEscDia');renderEscala();showToast('Escala salva!');
+  persist();apiSaveEscalaDia(_escEvId,cid,_escDay,ev.escala[cid][_escDay]);closeModal('mEscDia');renderEscala();showToast('Escala salva!');
 }
 
 
@@ -2287,7 +2380,7 @@ function executarCopy(){
         ev.escala[cid][dk]=[...slotsForDay];
       }
     });
-    persist();closeModal('mCopyEsc');renderEscala();
+    persist();dests.forEach(dk=>apiSaveEscalaDia(_escEvId,cid,dk,ev.escala[cid][dk]||[]));closeModal('mCopyEsc');renderEscala();
     let msg=originDk==='__reset__'?`${dests.length} dia(s) zerado(s)`:`Escala copiada para ${dests.length} dia(s)!`;
     if(totalSkipped>0) msg+=` (${totalSkipped} slot(s) ignorado(s) por indisponibilidade)`;
     showToast(msg);
@@ -2352,7 +2445,7 @@ function salvarVagasDia(){
   (ev.segmentosConfig||[]).forEach(sc=>{const inp=document.getElementById('vagasInput_'+sc.segId);if(!inp) return;const val=parseInt(inp.value);if(val!==sc.vagas) hasOverride=true;dayOverride[sc.segId]=val;});
   if(hasOverride) ev.vagasOverride[cid][_vagasDayKey]=dayOverride;
   else delete ev.vagasOverride[cid][_vagasDayKey];
-  persist();closeModal('mVagasDia');renderEscala();showToast('Vagas atualizadas!');
+  persist();apiSaveEvento(_vagasEvId);closeModal('mVagasDia');renderEscala();showToast('Vagas atualizadas!');
 }
 
 // HORÁRIO DIA
@@ -2374,7 +2467,7 @@ function salvarHorarioDia(){
   const fim=document.getElementById('horarioDiaFim').value;
   if(!inicio&&!fim) delete ev.horarioOverride[_horarioDayKey];
   else ev.horarioOverride[_horarioDayKey]={inicio,fim};
-  persist();closeModal('mHorarioDia');renderEscala();showToast('Horário salvo!');
+  persist();apiSaveEvento(_horarioEvId);closeModal('mHorarioDia');renderEscala();showToast('Horário salvo!');
 }
 
 // =============================================
@@ -2734,12 +2827,12 @@ function salvarOperador(){
     capacidade:parseInt(document.getElementById('opCapacidade').value)||1,
     bloqueios:[..._opBloqueios],segmentos:segs
   };
-  if(_editOpId){const idx=DB.operadores.findIndex(o=>o.id===_editOpId);DB.operadores[idx]={...DB.operadores[idx],...data};}
-  else{data.id=Date.now();DB.operadores.push(data);}
-  persist();closeModal('mOperador');renderOperadores();showToast('Operador salvo!');
+  if(_editOpId){const idx=DB.operadores.findIndex(o=>o.id===_editOpId);DB.operadores[idx]={...DB.operadores[idx],...data};persist();apiSaveOperador(DB.operadores[idx]);}
+  else{data.id=Date.now();DB.operadores.push(data);persist();apiCreateOperador(data);}
+  closeModal('mOperador');renderOperadores();showToast('Operador salvo!');
 }
 
-function delOp(id){if(!confirm('Remover operador?'))return;DB.operadores=DB.operadores.filter(o=>o.id!==id);persist();renderOperadores();showToast('Removido');}
+function delOp(id){if(!confirm('Remover operador?'))return;DB.operadores=DB.operadores.filter(o=>o.id!==id);persist();apiDeleteOperador(id);renderOperadores();showToast('Removido');}
 
 // =============================================
 // SEGMENTOS
@@ -2774,8 +2867,8 @@ function renderClientes(){
 function openModalCliente(){_editClId=null;document.getElementById('mClienteTitle').textContent='Novo Cliente';['clNome','clContato','clTel','clEmail','clObs'].forEach(id=>document.getElementById(id).value='');buildClEventosVinc(null);document.getElementById('mCliente').classList.add('open');}
 function editCliente(id){const cl=DB.clientes.find(c=>c.id===id);if(!cl)return;_editClId=id;document.getElementById('mClienteTitle').textContent='Editar Cliente';document.getElementById('clNome').value=cl.nome||'';document.getElementById('clContato').value=cl.contato||'';document.getElementById('clTel').value=cl.tel||'';document.getElementById('clEmail').value=cl.email||'';document.getElementById('clObs').value=cl.obs||'';buildClEventosVinc(id);document.getElementById('mCliente').classList.add('open');}
 function buildClEventosVinc(clId){const evs=DB.eventos.filter(ev=>!ev.clienteId||ev.clienteId===clId);document.getElementById('clEventosVinc').innerHTML=evs.map(ev=>{const linked=ev.clienteId===clId;return`<label class="check-pill ${linked?'checked':''}" onclick="this.classList.toggle('checked')" style="font-size:12px"><input type="hidden" data-evid="${ev.id}"> ${ev.nome}${ev.apelido?' ('+ev.apelido+')':''}</label>`;}).join('')||`<span style="font-size:12px;color:var(--text-muted)">Todos os eventos já possuem cliente</span>`;}
-function salvarCliente(){const nome=document.getElementById('clNome').value.trim();if(!nome){showToast('Informe o nome');return;}const data={nome,contato:document.getElementById('clContato').value,tel:document.getElementById('clTel').value,email:document.getElementById('clEmail').value,obs:document.getElementById('clObs').value};let clId;if(_editClId){const cl=DB.clientes.find(c=>c.id===_editClId);Object.assign(cl,data);clId=_editClId;}else{data.id='cl'+Date.now();DB.clientes.push(data);clId=data.id;}const sel=[...document.querySelectorAll('#clEventosVinc .check-pill.checked input')].map(i=>i.dataset.evid);DB.eventos.forEach(ev=>{if(sel.includes(ev.id))ev.clienteId=clId;else if(ev.clienteId===clId&&!sel.includes(ev.id))ev.clienteId=null;});persist();closeModal('mCliente');renderClientes();showToast('Cliente salvo!');}
-function delCliente(id){if(!confirm('Remover cliente?'))return;DB.clientes=DB.clientes.filter(c=>c.id!==id);persist();renderClientes();}
+function salvarCliente(){const nome=document.getElementById('clNome').value.trim();if(!nome){showToast('Informe o nome');return;}const data={nome,contato:document.getElementById('clContato').value,tel:document.getElementById('clTel').value,email:document.getElementById('clEmail').value,obs:document.getElementById('clObs').value};let clId;if(_editClId){const cl=DB.clientes.find(c=>c.id===_editClId);Object.assign(cl,data);clId=_editClId;persist();apiSaveCliente(cl);}else{data.id='cl'+Date.now();DB.clientes.push(data);clId=data.id;persist();apiCreateCliente(data);}const sel=[...document.querySelectorAll('#clEventosVinc .check-pill.checked input')].map(i=>i.dataset.evid);DB.eventos.forEach(ev=>{if(sel.includes(ev.id))ev.clienteId=clId;else if(ev.clienteId===clId&&!sel.includes(ev.id))ev.clienteId=null;});persist();closeModal('mCliente');renderClientes();showToast('Cliente salvo!');}
+function delCliente(id){if(!confirm('Remover cliente?'))return;DB.clientes=DB.clientes.filter(c=>c.id!==id);persist();apiDeleteCliente(id);renderClientes();}
 
 // =============================================
 // CONFIGURAÇÕES
@@ -2791,7 +2884,7 @@ function renderConfig(){
       ${DB.users.length>1?`<button class="btn btn-danger btn-sm" onclick="delUser(${i})">Remover</button>`:'<span style="font-size:11px;color:var(--text-muted)">Admin</span>'}
     </div>`).join('');
 }
-function saveCfg(){DB.config.alertDays=parseInt(document.getElementById('cfgAlertDays').value)||7;DB.config.popup=document.getElementById('cfgPopup').checked;DB.config.autoHoly=document.getElementById('cfgAutoHoly').checked;DB.config.trashDays=parseInt(document.getElementById('cfgTrashDays').value)||30;persist();}
+function saveCfg(){DB.config.alertDays=parseInt(document.getElementById('cfgAlertDays').value)||7;DB.config.popup=document.getElementById('cfgPopup').checked;DB.config.autoHoly=document.getElementById('cfgAutoHoly').checked;DB.config.trashDays=parseInt(document.getElementById('cfgTrashDays').value)||30;persist();apiSaveConfig();}
 function openAddUser(){document.getElementById('newUserName').value='';document.getElementById('newUserPass').value='';document.getElementById('mAddUser').classList.add('open');}
 function addUser(){const u=document.getElementById('newUserName').value.trim();const p=document.getElementById('newUserPass').value;if(!u||!p){showToast('Preencha usuário e senha');return;}if(DB.users.find(x=>x.user===u)){showToast('Usuário já existe');return;}DB.users.push({user:u,pass:p,name:u});persist();closeModal('mAddUser');renderConfig();showToast('Usuário adicionado!');}
 function delUser(i){if(DB.users[i].user===currentUser.user){showToast('Não pode remover o usuário atual');return;}if(!confirm('Remover?'))return;DB.users.splice(i,1);persist();renderConfig();}
