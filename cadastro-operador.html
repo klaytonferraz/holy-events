@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cadastro de Operador – Hōly Drinks</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#0a0a0a;--dark2:#141414;--dark3:#1c1c1c;--dark4:#222;
+  --gold:#dfb250;--gold-light:#f0c96a;--gold-dark:#b8912e;
+  --text:#f0f0f0;--text-muted:#888;
+  --radius:12px;--radius-sm:8px;
+  --danger:#e55;--success:#4CAF7C;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--black);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px 48px;}
+.page-logo{margin:32px 0 8px;display:flex;justify-content:center;}
+.page-logo svg{width:140px;height:auto;}
+.page-sub{font-size:12px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:32px;text-align:center;}
+.card{background:var(--dark2);border:1px solid rgba(223,178,80,0.2);border-radius:var(--radius);padding:32px 28px;width:100%;max-width:540px;}
+.card-title{font-size:18px;font-weight:700;margin-bottom:4px;}
+.card-desc{font-size:13px;color:var(--text-muted);margin-bottom:24px;line-height:1.5;}
+.form-row{display:grid;gap:16px;margin-bottom:16px;}
+.form-row.cols2{grid-template-columns:1fr 1fr;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;}
+label span.req{color:var(--gold);margin-left:2px;}
+input[type=text],input[type=tel],input[type=number],select,textarea{
+  width:100%;background:var(--dark3);border:1px solid rgba(255,255,255,0.1);
+  border-radius:var(--radius-sm);padding:10px 12px;color:var(--text);
+  font-family:'DM Sans',sans-serif;font-size:13px;outline:none;
+  transition:border-color 0.2s;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--gold);}
+select option{background:var(--dark2);}
+textarea{resize:vertical;min-height:80px;}
+.seg-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+.seg-chip{display:flex;align-items:center;gap:6px;padding:6px 12px;
+  border-radius:20px;border:1px solid rgba(255,255,255,0.15);
+  background:var(--dark3);cursor:pointer;font-size:12px;font-weight:500;
+  user-select:none;transition:all 0.15s;}
+.seg-chip input{display:none;}
+.seg-chip.checked{border-color:var(--gold);background:rgba(223,178,80,0.12);color:var(--gold);}
+.divider{height:1px;background:rgba(255,255,255,0.08);margin:20px 0;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;
+  border-radius:var(--radius-sm);border:none;cursor:pointer;font-family:'DM Sans',sans-serif;
+  font-size:14px;font-weight:600;transition:all 0.2s;text-decoration:none;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#1a1200;}
+.btn-gold:hover:not(:disabled){filter:brightness(1.1);}
+.btn-gold:disabled{opacity:0.5;cursor:not-allowed;}
+.btn-full{width:100%;justify-content:center;}
+.error-msg{color:var(--danger);font-size:12px;margin-top:8px;display:none;}
+.success-box{display:none;flex-direction:column;align-items:center;text-align:center;padding:16px 0;}
+.success-icon{font-size:48px;margin-bottom:16px;}
+.success-title{font-size:20px;font-weight:700;margin-bottom:8px;}
+.success-text{font-size:14px;color:var(--text-muted);line-height:1.6;max-width:360px;}
+.hint{font-size:11px;color:var(--text-muted);margin-top:4px;}
+@media(max-width:480px){.form-row.cols2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="page-logo">
+  <!-- Hōly Drinks SVG logo -->
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 597.6 208.2" aria-label="Hōly Drinks">
+    <style>.hl{fill:#dfb250}</style>
+    <path class="hl" d="M0 208.2V0h33.8v87.3h72.5V0h33.8v208.2h-33.8v-87.3H33.8v87.3z"/>
+    <path class="hl" d="M207.5 211.2c-13.3 0-25.3-3-36-9S153 186.8 147 176s-9-23.3-9-37 3-26 9-37 14.4-19.8 25.5-26 22.7-9.3 36-9.3 25.2 3.1 35.8 9.3 18.8 14.8 24.8 25.8 9 23.3 9 37-3 26.3-9 37.3-14.2 19.7-24.8 25.7-22.5 9.4-35.8 9.4zm0-29c8.7 0 16.5-2.2 23.5-6.5s12.4-10.5 16.3-18.5 5.8-17.3 5.8-27.8-1.9-19.7-5.8-27.5-9.3-13.8-16.3-18-14.8-6.3-23.5-6.3-16.7 2.1-23.8 6.3-12.6 10.2-16.5 18-5.8 17-5.8 27.5 1.9 19.8 5.8 27.8 9.4 14.2 16.5 18.5 15.1 6.5 23.8 6.5z"/>
+    <path class="hl" d="M334.5 208.2h-33.8V68.2h33.8V208.2z"/>
+    <path class="hl" d="M394.5 208.2h-33.8V68.2h33.8l-0.3 108.5 68-108.5h35.8l-103.5 165.3z"/>
+    <path class="hl" d="M M59.5 30.5a15 15 0 1 0 30 0 15 15 0 0 0-30 0z"/>
+    <text x="208" y="44" font-family="DM Sans,sans-serif" font-size="32" font-weight="700" fill="#dfb250" text-anchor="middle" letter-spacing="1">ō</text>
+    <path class="hl" d="M494.3 208.2V68.2h82.5c11.7 0 22 2.2 31 6.5s16 10.7 21 19.3 7.5 18.7 7.5 30.5c0 10.7-2.3 20.2-7 28.5s-11.5 14.8-20.5 19.5l33 36h-39l-28.5-32.5h-47v32.7h-33zm33-62.5h45.8c8 0 14.4-2.3 19.3-7s7.3-10.8 7.3-18.5-2.4-13.8-7.3-18.3-11.3-6.7-19.3-6.7h-45.8v50.5z"/>
+  </svg>
+</div>
+
+<div class="page-sub">Cadastro de Operador</div>
+
+<div class="card">
+  <!-- FORMULÁRIO -->
+  <div id="formSection">
+    <div class="card-title">Junte-se à nossa rede</div>
+    <div class="card-desc">Preencha seus dados para fazer parte da equipe Hōly Drinks. Após análise, entraremos em contato.</div>
+
+    <form id="cadForm" onsubmit="submitForm(event)" novalidate>
+      <!-- Nome -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nome / Razão Social <span class="req">*</span></label>
+          <input type="text" id="fNome" placeholder="Seu nome ou nome da empresa" required>
+        </div>
+      </div>
+
+      <!-- Produto / Tipo -->
+      <div class="form-row cols2">
+        <div class="form-group">
+          <label>Especialidade / Produto</label>
+          <input type="text" id="fProduto" placeholder="ex: Drinks artesanais">
+        </div>
+        <div class="form-group">
+          <label>Tipo de operação</label>
+          <select id="fTipo">
+            <option value="Truck">Truck</option>
+            <option value="Trailer">Trailer</option>
+            <option value="Barracão">Barracão</option>
+            <option value="Van">Van</option>
+            <option value="Moto">Moto</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Contato -->
+      <div class="form-row cols2">
+        <div class="form-group">
+          <label>Nome do responsável</label>
+          <input type="text" id="fPoc" placeholder="ex: João Silva">
+        </div>
+        <div class="form-group">
+          <label>Telefone / WhatsApp</label>
+          <input type="tel" id="fTel" placeholder="(00) 00000-0000">
+        </div>
+      </div>
+
+      <!-- Instagram / Cidades -->
+      <div class="form-row cols2">
+        <div class="form-group">
+          <label>Instagram</label>
+          <input type="text" id="fInsta" placeholder="@seuinstagram">
+        </div>
+        <div class="form-group">
+          <label>Cidades que atende</label>
+          <input type="text" id="fCidades" placeholder="ex: São Paulo, Curitiba">
+        </div>
+      </div>
+
+      <!-- Capacidade / Carga -->
+      <div class="form-row cols2">
+        <div class="form-group">
+          <label>Capacidade simultânea</label>
+          <input type="number" id="fCapacidade" value="1" min="1" max="20">
+          <span class="hint">Quantos eventos pode fazer ao mesmo tempo</span>
+        </div>
+        <div class="form-group">
+          <label>Tensão elétrica</label>
+          <select id="fVolt">
+            <option value="">Não sei</option>
+            <option value="110V">110V</option>
+            <option value="220V">220V</option>
+            <option value="110/220V">Bivolt (110/220V)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Equipamento / Dimensões -->
+      <div class="form-row cols2">
+        <div class="form-group">
+          <label>Carga / Equipamento</label>
+          <input type="text" id="fCarga" placeholder="ex: Gerador, Freezer">
+        </div>
+        <div class="form-group">
+          <label>Dimensões (C×L×A)</label>
+          <input type="text" id="fDim" placeholder="ex: 4m × 2m × 2.5m">
+        </div>
+      </div>
+
+      <!-- Segmentos -->
+      <div class="divider"></div>
+      <div class="form-group" style="margin-bottom:16px">
+        <label>Segmentos de interesse</label>
+        <div class="seg-grid" id="segGrid">
+          <span style="color:var(--text-muted);font-size:12px">Carregando...</span>
+        </div>
+      </div>
+
+      <!-- Obs -->
+      <div class="form-group" style="margin-bottom:24px">
+        <label>Observações</label>
+        <textarea id="fObs" placeholder="Informações adicionais, diferenciais, disponibilidade..."></textarea>
+      </div>
+
+      <div id="formErr" class="error-msg"></div>
+      <button type="submit" class="btn btn-gold btn-full" id="submitBtn">Enviar cadastro</button>
+    </form>
+  </div>
+
+  <!-- SUCESSO -->
+  <div class="success-box" id="successBox">
+    <div class="success-icon">🎉</div>
+    <div class="success-title">Cadastro enviado!</div>
+    <div class="success-text">Obrigado por se cadastrar na rede Hōly Drinks. Nossa equipe vai analisar seu perfil e entrar em contato em breve.</div>
+  </div>
+</div>
+
+<script>
+// Carrega segmentos e monta os chips
+async function loadSegmentos() {
+  try {
+    const r = await fetch('/api/segmentos');
+    const segs = await r.json();
+    const grid = document.getElementById('segGrid');
+    if (!segs || segs.length === 0) { grid.innerHTML = '<span style="color:var(--text-muted);font-size:12px">Nenhum segmento disponível</span>'; return; }
+    grid.innerHTML = segs.map(s =>
+      '<label class="seg-chip" id="chip_' + s.id + '">' +
+        '<input type="checkbox" value="' + s.id + '" onchange="toggleChip(this)">' +
+        '<span>' + (s.icone || '') + '</span>' +
+        '<span>' + s.nome + '</span>' +
+      '</label>'
+    ).join('');
+  } catch(e) {
+    document.getElementById('segGrid').innerHTML = '<span style="color:var(--text-muted);font-size:12px">Erro ao carregar segmentos.</span>';
+  }
+}
+
+function toggleChip(cb) {
+  const chip = cb.closest('.seg-chip');
+  chip.classList.toggle('checked', cb.checked);
+}
+
+async function submitForm(e) {
+  e.preventDefault();
+  const nome = document.getElementById('fNome').value.trim();
+  if (!nome) {
+    const err = document.getElementById('formErr');
+    err.textContent = 'Por favor, preencha o nome.';
+    err.style.display = 'block';
+    document.getElementById('fNome').focus();
+    return;
+  }
+  document.getElementById('formErr').style.display = 'none';
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+
+  const segmentos = Array.from(document.querySelectorAll('#segGrid input:checked')).map(c => c.value);
+
+  const body = {
+    nome,
+    produto:    document.getElementById('fProduto').value.trim(),
+    poc:        document.getElementById('fPoc').value.trim(),
+    tel:        document.getElementById('fTel').value.trim(),
+    insta:      document.getElementById('fInsta').value.trim(),
+    tipo:       document.getElementById('fTipo').value,
+    cidades:    document.getElementById('fCidades').value.trim(),
+    capacidade: parseInt(document.getElementById('fCapacidade').value) || 1,
+    volt:       document.getElementById('fVolt').value,
+    carga:      document.getElementById('fCarga').value.trim(),
+    dim:        document.getElementById('fDim').value.trim(),
+    obs:        document.getElementById('fObs').value.trim(),
+    segmentos,
+  };
+
+  try {
+    const r = await fetch('/api/cadastro', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await r.json();
+    if (!r.ok) {
+      const err = document.getElementById('formErr');
+      err.textContent = data.error || 'Erro ao enviar. Tente novamente.';
+      err.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Enviar cadastro';
+      return;
+    }
+    // Sucesso
+    document.getElementById('formSection').style.display = 'none';
+    document.getElementById('successBox').style.display = 'flex';
+  } catch(err) {
+    const errEl = document.getElementById('formErr');
+    errEl.textContent = 'Erro de rede. Tente novamente.';
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Enviar cadastro';
+  }
+}
+
+loadSegmentos();
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/cadastro-operador", "destination": "/cadastro-operador.html" }
+  ]
+}
