@@ -50,6 +50,8 @@
 <meta name="theme-color" content="#002519">
 <title>Holy Events</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
   /* Holy Brand Colors (Manual de Diretrizes Visuais) */
@@ -154,6 +156,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .badge-amber{background:rgba(224,162,82,0.15);color:var(--amber);border:1px solid rgba(224,162,82,0.3);}
 .badge-blue{background:rgba(82,144,224,0.15);color:var(--blue);border:1px solid rgba(82,144,224,0.3);}
 .badge-gold{background:rgba(223,178,80,0.15);color:var(--gold);border:1px solid rgba(223,178,80,0.3);}
+.badge-orange{background:rgba(249,115,22,0.15);color:#f97316;border:1px solid rgba(249,115,22,0.3);}
 .badge-gray{background:rgba(155,155,155,0.15);color:#999;border:1px solid rgba(155,155,155,0.3);}
 .tag{display:inline-block;background:var(--surface);color:var(--text-muted);padding:2px 7px;border-radius:4px;font-size:11px;margin:1px;}
 .city-tag{display:inline-block;padding:2px 7px;background:rgba(223,178,80,0.1);color:var(--gold-light);border-radius:4px;font-size:11px;margin:1px;}
@@ -479,6 +482,14 @@ textarea{resize:vertical;min-height:70px;}
 
     <!-- OPERADORES -->
     <div class="page" id="page-operadores">
+      <!-- Banner de pendentes -->
+      <div id="pendentesBar" style="display:none;background:rgba(223,178,80,0.08);border:1px solid rgba(223,178,80,0.3);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:12px;display:none;align-items:center;justify-content:space-between;gap:12px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:16px">⏳</span>
+          <span style="font-size:13px;font-weight:600" id="pendentesMsg"></span>
+        </div>
+        <button class="btn btn-gold btn-sm" onclick="_opFilter='pendentes';renderOpFilters();renderOperadores()">Ver pendentes</button>
+      </div>
       <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
         <input class="search-input" id="opSearch" placeholder="🔍 Buscar..." oninput="renderOperadores()" style="flex:1;min-width:160px">
         <div class="filter-bar" id="opFilters"></div>
@@ -778,6 +789,37 @@ textarea{resize:vertical;min-height:70px;}
   </div>
 </div>
 
+<!-- MODAL APROVAR OPERADOR -->
+<div class="modal-overlay" id="mAprovar">
+  <div class="modal" style="width:500px">
+    <div class="modal-header"><span class="modal-title">Aprovar Operador</span><button class="modal-close" onclick="closeModal('mAprovar')">✕</button></div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+        <div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Nome</div><div style="font-weight:600" id="aprNome"></div></div>
+        <div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Produto</div><div id="aprProduto"></div></div>
+        <div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Tipo</div><div id="aprTipo"></div></div>
+        <div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Responsável</div><div id="aprPoc"></div></div>
+        <div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Telefone</div><div id="aprTel"></div></div>
+        <div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Instagram</div><div id="aprInsta"></div></div>
+        <div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Cidades</div><div id="aprCidades"></div></div>
+        <div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Segmentos</div><div id="aprSegs"></div></div>
+      </div>
+      <div style="margin-bottom:16px"><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Observações</div><div style="font-size:13px;color:var(--text-muted)" id="aprObs"></div></div>
+      <div class="form-group"><label>Aprovar como</label>
+        <select id="aprStatusSel">
+          <option value="Contratado">Contratado</option>
+          <option value="Prospect">Prospect</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="closeModal('mAprovar');rejeitarOp(_aprovarOpId,true)">Rejeitar</button>
+      <button class="btn btn-outline" onclick="closeModal('mAprovar')">Cancelar</button>
+      <button class="btn btn-gold" onclick="aprovarOp()">✓ Aprovar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL ADD USER -->
 <div class="modal-overlay" id="mAddUser">
   <div class="modal" style="width:380px">
@@ -798,7 +840,7 @@ const DIAS_SEMANA=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const MESES_C=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 const SEG_CORES=['#DFB250','#4CAF7C','#5290E0','#E05252','#E0A252','#A07AF0','#E07AF0','#52D4E0','#F97316'];
-const STATUS_BADGE={Contratado:'badge-green',Prospect:'badge-amber',Confirmado:'badge-blue',Cancelado:'badge-red'};
+const STATUS_BADGE={Contratado:'badge-green',Prospect:'badge-amber',Confirmado:'badge-blue',Cancelado:'badge-red',Pendente:'badge-orange',Rejeitado:'badge-red'};
 const EV_STATUS_CSS={ativo:'status-ativo',concluido:'status-concluido',cancelado:'status-cancelado',adiado:'status-adiado',excluido:'status-excluido'};
 const EV_STATUS_LABEL={ativo:'Ativo',concluido:'Concluído',cancelado:'Cancelado',adiado:'Adiado',excluido:'Excluído'};
 
@@ -1076,22 +1118,48 @@ function autoArchiveCheck(){
 }
 
 // =============================================
-// LOGIN
+// LOGIN / SESSION
 // =============================================
-const DEV_MODE=true; // SET TO false BEFORE PRODUCTION
+let _lastActivity=Date.now();
+let _inactivityTimer=null;
+const INACTIVITY_MS=30*60*1000; // 30 minutos
 
-function doLogin(){
+function _resetActivity(){_lastActivity=Date.now();}
+function _startInactivityTimer(){
+  if(_inactivityTimer)clearInterval(_inactivityTimer);
+  _inactivityTimer=setInterval(()=>{if(Date.now()-_lastActivity>INACTIVITY_MS)doLogout();},60000);
+  ['click','keydown','mousemove','touchstart'].forEach(ev=>document.addEventListener(ev,_resetActivity,{passive:true}));
+}
+function _stopInactivityTimer(){
+  if(_inactivityTimer){clearInterval(_inactivityTimer);_inactivityTimer=null;}
+  ['click','keydown','mousemove','touchstart'].forEach(ev=>document.removeEventListener(ev,_resetActivity));
+}
+
+async function doLogin(){
   const u=document.getElementById('loginUser').value.trim();
   const p=document.getElementById('loginPass').value;
-  const found=DB.users.find(x=>x.user===u&&x.pass===p);
-  if(!found){document.getElementById('loginErr').textContent='Usuário ou senha incorretos.';return;}
-  currentUser=found;
-  _enterApp();
+  if(!u||!p)return;
+  document.getElementById('loginErr').textContent='';
+  const btn=document.querySelector('#loginScreen .btn-gold');
+  btn.disabled=true;btn.textContent='Entrando...';
+  try{
+    const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+    const data=await r.json();
+    if(!r.ok){document.getElementById('loginErr').textContent=data.error||'Erro ao entrar.';return;}
+    currentUser={user:u,name:data.name};
+    sessionStorage.setItem('hly_session',JSON.stringify({user:u,name:data.name,ts:Date.now()}));
+    _enterApp();
+  }catch(e){
+    document.getElementById('loginErr').textContent='Erro de rede. Tente novamente.';
+  }finally{
+    btn.disabled=false;btn.textContent='Entrar';
+  }
 }
 
 function _enterApp(){
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('mainApp').style.display='block';
+  _startInactivityTimer();
   autoArchiveCheck();
   // Apply Holy Drinks defaults to all active events on startup
   DB.eventos.filter(isActive).forEach(ev=>applyHolyDefaults(ev.id));
@@ -1103,8 +1171,9 @@ function _enterApp(){
 }
 
 function doLogout(){
+  _stopInactivityTimer();
   currentUser=null;
-  if(DEV_MODE){_enterApp();return;} // In dev mode, logout goes back to app directly
+  sessionStorage.removeItem('hly_session');
   document.getElementById('loginScreen').style.display='flex';
   document.getElementById('mainApp').style.display='none';
   document.getElementById('loginUser').value='';
@@ -1112,24 +1181,27 @@ function doLogout(){
   document.getElementById('loginErr').textContent='';
 }
 
-// Auto-enter in dev mode
-if(DEV_MODE){
-  currentUser={user:'dev',name:'Dev'};
-  document.addEventListener('DOMContentLoaded',async()=>{
-    try{
-      const apiData=await _loadFromAPI();
-      DB.config=apiData.config;
-      DB.segmentos=apiData.segmentos;
-      DB.clientes=apiData.clientes;
-      DB.operadores=apiData.operadores;
-      DB.eventos=apiData.eventos;
-      persist();
-    }catch(e){
-      console.warn('[API] load falhou, usando cache localStorage:',e.message);
-    }
-    _enterApp();
-  });
-}
+document.addEventListener('DOMContentLoaded',async()=>{
+  // Restaura sessão se existir
+  try{
+    const saved=sessionStorage.getItem('hly_session');
+    if(saved){const sess=JSON.parse(saved);currentUser={user:sess.user,name:sess.name};}
+  }catch(e){}
+  // Carrega dados do API (com fallback para localStorage)
+  try{
+    const apiData=await _loadFromAPI();
+    DB.config=apiData.config;
+    DB.segmentos=apiData.segmentos;
+    DB.clientes=apiData.clientes;
+    DB.operadores=apiData.operadores;
+    DB.eventos=apiData.eventos;
+    persist();
+  }catch(e){
+    console.warn('[API] load falhou, usando cache localStorage:',e.message);
+  }
+  if(currentUser)_enterApp();
+  // else: loginScreen já está visível por padrão
+});
 
 // =============================================
 // NAVIGATION
@@ -1143,13 +1215,13 @@ function nav(page){
   if(ni) ni.classList.add('active');
   document.getElementById('pageTitle').textContent=PAGE_TITLES[page]||page;
   const ta=document.getElementById('topbarActions'); ta.innerHTML='';
-  if(page==='eventos'){ta.innerHTML=`<button class="btn btn-gold" onclick="openModalEvento()">+ Novo Evento</button>`;renderEventos();}
-  else if(page==='operadores'){ta.innerHTML=`<button class="btn btn-gold" onclick="openModalOp()">+ Novo Operador</button>`;renderOpFilters();renderOperadores();}
+  if(page==='eventos'){ta.innerHTML='<button class="btn btn-outline btn-sm" onclick="exportarXLSX(\'eventos\')" title="Exportar XLSX">⬇ XLSX</button> <button class="btn btn-gold" onclick="openModalEvento()">+ Novo Evento</button>';renderEventos();}
+  else if(page==='operadores'){ta.innerHTML='<button class="btn btn-outline btn-sm" onclick="exportarXLSX(\'operadores\')" title="Exportar XLSX">⬇ XLSX</button> <button class="btn btn-gold" onclick="openModalOp()">+ Novo Operador</button>';renderOpFilters();renderOperadores();}
   else if(page==='dashboard') renderDashboard();
-  else if(page==='escala'){buildEscalaSelects();checkAlertPopup();}
+  else if(page==='escala'){ta.innerHTML='<button class="btn btn-outline btn-sm" onclick="exportarXLSX(\'escala\')" title="Exportar escala XLSX">⬇ XLSX</button> <button class="btn btn-outline btn-sm" onclick="exportarPDF()" title="Exportar PDF da escala">⬇ PDF</button>';buildEscalaSelects();checkAlertPopup();}
   else if(page==='calendario'){buildCalEvFilter();renderCalendario();}
   else if(page==='segmentos') renderSegmentos();
-  else if(page==='clientes'){ta.innerHTML=`<button class="btn btn-gold" onclick="openModalCliente()">+ Novo Cliente</button>`;renderClientes();}
+  else if(page==='clientes'){ta.innerHTML='<button class="btn btn-outline btn-sm" onclick="exportarXLSX(\'clientes\')" title="Exportar XLSX">⬇ XLSX</button> <button class="btn btn-gold" onclick="openModalCliente()">+ Novo Cliente</button>';renderClientes();}
   else if(page==='configuracoes') renderConfig();
   if(window.innerWidth<768) document.getElementById('sidebar').classList.remove('open');
 }
@@ -1162,6 +1234,247 @@ function fmtHora(h){return h||'—';}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function closePopup(id){document.getElementById(id).classList.remove('open');}
+
+// =============================================
+// EXPORTAÇÃO XLSX
+// =============================================
+function exportarXLSX(tipo){
+  if(typeof XLSX==='undefined'){showToast('Biblioteca XLSX não carregada');return;}
+  const wb=XLSX.utils.book_new();
+  const now=new Date();
+  const stamp=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+
+  if(tipo==='operadores'){
+    const rows=DB.operadores.map(op=>({
+      'Nome':op.nome,
+      'Produto':op.produto||'',
+      'Responsável':op.poc||'',
+      'Telefone':op.tel||'',
+      'Instagram':op.insta||'',
+      'Tipo':op.tipo||'',
+      'Status':op.status||'',
+      'Cidades':op.cidades||'',
+      'Capacidade':op.capacidade||1,
+      'Segmentos':(op.segmentos||[]).map(sid=>{const s=DB.segmentos.find(x=>x.id===sid);return s?s.nome:sid;}).join(', '),
+      'Holy':op.isHoly?'Sim':'Não',
+      'Tensão':op.volt||'',
+      'Dimensões':op.dim||'',
+      'Carga':op.carga||'',
+      'Observações':op.obs||'',
+    }));
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Operadores');
+    XLSX.writeFile(wb,'operadores_'+stamp+'.xlsx');
+    showToast('Exportado: operadores_'+stamp+'.xlsx');
+  }
+
+  else if(tipo==='clientes'){
+    const rows=DB.clientes.map(c=>({
+      'Nome':c.nome,
+      'Contato':c.contato||'',
+      'Telefone':c.tel||'',
+      'Email':c.email||'',
+      'Observações':c.obs||'',
+    }));
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Clientes');
+    XLSX.writeFile(wb,'clientes_'+stamp+'.xlsx');
+    showToast('Exportado: clientes_'+stamp+'.xlsx');
+  }
+
+  else if(tipo==='eventos'){
+    const rows=DB.eventos.map(ev=>{
+      const cl=DB.clientes.find(c=>c.id===ev.clienteId)||{};
+      return {
+        'Nome':ev.nome,
+        'Edição':ev.edicao||'',
+        'Apelido':ev.apelido||'',
+        'Cliente':cl.nome||'',
+        'Status':ev.status||'',
+        'Início':fmtDate(ev.inicio),
+        'Fim':fmtDate(ev.fim),
+        'Horário Início':ev.horarioInicio||'',
+        'Horário Fim':ev.horarioFim||'',
+        'Cidades':(ev.cidades||[]).join(', '),
+        'Dias da Semana':(ev.dias||[]).map(d=>['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][d]||d).join(', '),
+        'Público/Dia':ev.publicoDia||0,
+        'Observações':ev.obs||'',
+      };
+    });
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Eventos');
+    XLSX.writeFile(wb,'eventos_'+stamp+'.xlsx');
+    showToast('Exportado: eventos_'+stamp+'.xlsx');
+  }
+
+  else if(tipo==='escala'){
+    const rows=[];
+    for(const ev of DB.eventos){
+      const cl=DB.clientes.find(c=>c.id===ev.clienteId)||{};
+      const escala=ev.escala||{};
+      for(const cidade of Object.keys(escala)){
+        for(const data of Object.keys(escala[cidade])){
+          for(const slot of (escala[cidade][data]||[])){
+            const opId=typeof slot==='object'?slot.id:slot;
+            const segId=typeof slot==='object'?slot.segId:null;
+            const op=DB.operadores.find(o=>o.id===opId)||{};
+            const seg=DB.segmentos.find(s=>s.id===segId)||{};
+            rows.push({
+              'Evento':ev.nome+(ev.edicao?' – '+ev.edicao:''),
+              'Cliente':cl.nome||'',
+              'Data':fmtDate(data),
+              'Cidade':cidade,
+              'Segmento':seg.nome||segId||'',
+              'Operador':op.nome||String(opId)||'',
+              'Telefone':op.tel||'',
+              'Produto':op.produto||'',
+              'Tipo':op.tipo||'',
+              'Holy':op.isHoly?'Sim':'Não',
+            });
+          }
+        }
+      }
+    }
+    if(!rows.length) rows.push({'Aviso':'Nenhum slot na escala'});
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Escala');
+    XLSX.writeFile(wb,'escala_'+stamp+'.xlsx');
+    showToast('Exportado: escala_'+stamp+'.xlsx');
+  }
+}
+
+// =============================================
+// EXPORTAÇÃO PDF (jsPDF) — uma página por dia
+// =============================================
+function exportarPDF(){
+  if(typeof window.jspdf==='undefined'){showToast('jsPDF não carregada');return;}
+  const {jsPDF}=window.jspdf;
+  const evId=document.getElementById('escEvSel')?.value;
+  const cid=document.getElementById('escCidSel')?.value;
+  const ev=DB.eventos.find(e=>e.id===evId);
+  if(!ev||!ev.inicio){showToast('Selecione um evento com datas definidas');return;}
+  const days=getEventDays(ev);
+  if(!days.length){showToast('Evento sem dias de operação');return;}
+
+  const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  const W=297,H=210,ML=14,MR=14,MT=10;
+  const GOLD=[223,178,80];
+  const DARK=[15,15,15];
+  const LIGHT=[245,245,245];
+  const MUTED=[140,140,140];
+  const DGRAY=[60,60,60];
+
+  days.forEach((day,pi)=>{
+    if(pi>0)pdf.addPage();
+    const dk=day.toISOString().split('T')[0];
+    const slots=getSlots(ev,cid,dk);
+
+    // Background
+    pdf.setFillColor(...DARK);
+    pdf.rect(0,0,W,H,'F');
+
+    // ── Cabeçalho ──────────────────────────────
+    // "HOLY DRINKS" texto (logo tipográfico)
+    pdf.setTextColor(...GOLD);
+    pdf.setFontSize(20);
+    pdf.setFont('helvetica','bold');
+    pdf.text('HOLY DRINKS',ML,MT+10);
+
+    // Evento + edição
+    pdf.setFontSize(9);
+    pdf.setTextColor(...MUTED);
+    pdf.text(ev.nome+(ev.edicao?' – '+ev.edicao:''),ML,MT+17);
+
+    // Cidade e data (direita)
+    const diaStr=DIAS_SEMANA[day.getDay()].toUpperCase()+', '+String(day.getDate()).padStart(2,'0')+' '+MESES[day.getMonth()].toUpperCase()+' '+day.getFullYear();
+    pdf.setFontSize(11);
+    pdf.setTextColor(...LIGHT);
+    pdf.text(cid.toUpperCase(),W-MR,MT+10,{align:'right'});
+    pdf.setFontSize(9);
+    pdf.setTextColor(...MUTED);
+    pdf.text(diaStr,W-MR,MT+17,{align:'right'});
+
+    // Linha separadora dourada
+    pdf.setDrawColor(...GOLD);
+    pdf.setLineWidth(0.6);
+    pdf.line(ML,MT+21,W-MR,MT+21);
+
+    // ── Corpo: operadores por segmento ─────────
+    // Agrupa slots por segmento
+    const segGroups={};
+    for(const slot of slots){
+      if(!segGroups[slot.segId])segGroups[slot.segId]=[];
+      const op=DB.operadores.find(o=>o.id===slot.id);
+      if(op&&!segGroups[slot.segId].find(x=>x.id===op.id))segGroups[slot.segId].push(op);
+    }
+    const segOrder=DB.segmentos.map(s=>s.id);
+    const sortedSegs=Object.keys(segGroups).sort((a,b)=>segOrder.indexOf(a)-segOrder.indexOf(b));
+
+    if(!sortedSegs.length){
+      pdf.setTextColor(...MUTED);
+      pdf.setFontSize(12);
+      pdf.text('Nenhum operador escalado para este dia.',W/2,H/2,{align:'center'});
+    } else {
+      const numCols=Math.min(sortedSegs.length,4);
+      const colW=(W-ML-MR)/numCols;
+      const startY=MT+27;
+
+      sortedSegs.forEach((segId,ci)=>{
+        const seg=DB.segmentos.find(s=>s.id===segId)||{nome:segId,cor:'#888888'};
+        const ops=segGroups[segId];
+        const cx=ML+ci*colW;
+        let cy=startY;
+
+        // Parse cor hex
+        const hex=seg.cor.replace('#','');
+        const sr=parseInt(hex.substring(0,2),16)||136;
+        const sg=parseInt(hex.substring(2,4),16)||136;
+        const sb_=parseInt(hex.substring(4,6),16)||136;
+
+        // Header do segmento
+        pdf.setFillColor(sr,sg,sb_);
+        pdf.roundedRect(cx,cy,colW-3,8,1.5,1.5,'F');
+        pdf.setTextColor(10,10,10);
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica','bold');
+        pdf.text(seg.nome.toUpperCase(),cx+(colW-3)/2,cy+5.2,{align:'center',maxWidth:colW-6});
+        cy+=10;
+
+        // Cards dos operadores
+        ops.forEach(op=>{
+          const cardH=16;
+          pdf.setFillColor(28,28,28);
+          pdf.setDrawColor(45,45,45);
+          pdf.setLineWidth(0.3);
+          pdf.roundedRect(cx,cy,colW-3,cardH,1.5,1.5,'FD');
+          pdf.setTextColor(...LIGHT);
+          pdf.setFontSize(8.5);
+          pdf.setFont('helvetica','bold');
+          pdf.text(op.nome,cx+3,cy+6,{maxWidth:colW-8});
+          pdf.setFontSize(7);
+          pdf.setFont('helvetica','normal');
+          pdf.setTextColor(...MUTED);
+          const det=[op.produto,op.tel].filter(Boolean).join(' · ')||'';
+          if(det)pdf.text(det,cx+3,cy+10.5,{maxWidth:colW-8});
+          if(op.cidades)pdf.text(op.cidades,cx+3,cy+14,{maxWidth:colW-6});
+          cy+=cardH+2;
+        });
+      });
+    }
+
+    // ── Rodapé ─────────────────────────────────
+    pdf.setTextColor(...DGRAY);
+    pdf.setFontSize(6.5);
+    pdf.setFont('helvetica','normal');
+    const horInicio=ev.horarioOverride&&ev.horarioOverride[dk]?ev.horarioOverride[dk].inicio:ev.horarioInicio;
+    const horFim=ev.horarioOverride&&ev.horarioOverride[dk]?ev.horarioOverride[dk].fim:ev.horarioFim;
+    const horStr=horInicio?('Horário: '+horInicio+(horFim?'–'+horFim:'')):'';
+    pdf.text(horStr,ML,H-5);
+    pdf.text('Holy Events Manager · Gerado em '+new Date().toLocaleDateString('pt-BR'),W/2,H-5,{align:'center'});
+    pdf.text('Página '+(pi+1)+' de '+days.length,W-MR,H-5,{align:'right'});
+  });
+
+  const safe=(ev.nome+(ev.apelido?'_'+ev.apelido:'')).replace(/[^a-zA-Z0-9_\-]/g,'_').substring(0,40);
+  const fname='escala_'+safe+'_'+cid.replace(/\s/g,'_')+'.pdf';
+  pdf.save(fname);
+  showToast('PDF gerado: '+fname);
+}
 
 function getEventDays(ev){
   const days=[];
@@ -1361,11 +1674,13 @@ function renderDashboard(){
       const dk=day.toISOString().split('T')[0];
       const isToday=day.getTime()===today.getTime();
       const cid=ev.cidades[0]||'';
-      const opIds=getSlotOpIds(ev,cid,dk);
-      const ops=[...new Set(opIds)].map(id=>DB.operadores.find(o=>o.id===id)).filter(Boolean);
+      const slots=getSlots(ev,cid,dk);
+      // Deduplica por operador, mantendo segId do primeiro slot
+      const seen=new Set();
+      const uniqueSlots=slots.filter(s=>{if(seen.has(s.id))return false;seen.add(s.id);return true;});
+      const slotOps=uniqueSlots.map(s=>{const op=DB.operadores.find(o=>o.id===s.id);const seg=DB.segmentos.find(x=>x.id===s.segId);return op?{op,seg}:null;}).filter(Boolean);
       const totalV=getDayVagasTotal(ev,dk,cid);
       const al=getDayAlertStatus(ev,dk,cid);
-      const evColor=DB.segmentos[0]?.cor||'#DFB250';
       return `<div class="upcoming-day ${isToday?'today':''}">
         <div class="upcoming-day-header">
           <div>
@@ -1373,13 +1688,12 @@ function renderDashboard(){
             <div style="font-size:16px;font-weight:700;color:${isToday?'var(--gold)':'var(--text)'}">${day.getDate()} ${MESES_C[day.getMonth()]}</div>
             <div style="font-size:10px;padding:1px 5px;border-radius:3px;margin-top:3px;background:rgba(223,178,80,0.12);color:var(--gold);font-weight:600">${ev.apelido||ev.nome}</div>
           </div>
-          ${al.icon&&al.status!=='ok'?'<span class="tooltip-wrap tip-left"><span class="alert-icon">'+al.icon+'</span><span class="tooltip-text">'+( al.title||'')+'</span></span>':''}
+          ${al.icon&&al.status!=='ok'?'<span class="tooltip-wrap tip-left"><span class="alert-icon">'+al.icon+'</span><span class="tooltip-text">'+(al.title||'')+'</span></span>':''}
         </div>
-        <div class="upcoming-day-body">
-          ${ops.slice(0,3).map(op=>{const seg=op.segmentos?.length?DB.segmentos.find(s=>s.id===op.segmentos[0]):null;return`<div class="upcoming-op" style="border-left-color:${seg?seg.cor:'#888'}">${op.nome}</div>`;}).join('')}
-          ${ops.length>3?`<div style="font-size:10px;color:var(--text-muted);padding:2px 0">+${ops.length-3} mais</div>`:''}
-          ${!ops.length?`<div style="font-size:10px;color:var(--text-muted);padding:4px 0">Sem operadores</div>`:''}
-          <div style="font-size:10px;color:${al.color||'var(--text-muted)'};margin-top:4px;font-weight:600">${opIds.length}/${totalV} vagas · ${ev.horarioInicio||'?'}–${ev.horarioFim||'?'}</div>
+        <div class="upcoming-day-body" style="max-height:160px;overflow-y:auto">
+          ${slotOps.map(({op,seg})=>'<div class="upcoming-op" style="border-left-color:'+(seg?seg.cor:'#888')+'">'+op.nome+'</div>').join('')}
+          ${!slotOps.length?'<div style="font-size:10px;color:var(--text-muted);padding:4px 0">Sem operadores</div>':''}
+          <div style="font-size:10px;color:${al.color||'var(--text-muted)'};margin-top:4px;font-weight:600">${slotOps.length}/${totalV} vagas · ${ev.horarioInicio||'?'}–${ev.horarioFim||'?'}</div>
         </div>
       </div>`;
     }).join('')+'</div>';
@@ -2659,31 +2973,43 @@ function renderCalendario(){
 // =============================================
 let _opFilter='todos';
 function renderOpFilters(){
-  const f=[{k:'todos',l:'Todos'},...DB.segmentos.map(s=>({k:s.id,l:s.icone+' '+s.nome}))];
-  document.getElementById('opFilters').innerHTML=f.map(x=>`<button class="filter-btn ${_opFilter===x.k?'active':''}" onclick="_opFilter='${x.k}';renderOpFilters();renderOperadores()">${x.l}</button>`).join('');
+  const pendCount=DB.operadores.filter(o=>o.status==='Pendente').length;
+  const bar=document.getElementById('pendentesBar');
+  if(pendCount>0){
+    document.getElementById('pendentesMsg').textContent=pendCount+' operador'+(pendCount>1?'es':'')+' aguardando aprovação';
+    bar.style.display='flex';
+  } else {
+    bar.style.display='none';
+  }
+  const f=[{k:'todos',l:'Todos'},{k:'pendentes',l:'⏳ Pendentes'+(pendCount?' ('+pendCount+')':'')},...DB.segmentos.map(s=>({k:s.id,l:s.icone+' '+s.nome}))];
+  document.getElementById('opFilters').innerHTML=f.map(x=>'<button class="filter-btn '+((_opFilter===x.k)?'active':'')+'" onclick="_opFilter=\''+x.k+'\';renderOpFilters();renderOperadores()">'+x.l+'</button>').join('');
 }
 function renderOperadores(){
   const q=(document.getElementById('opSearch')?.value||'').toLowerCase();
   let ops=DB.operadores;
-  if(_opFilter!=='todos') ops=ops.filter(o=>o.segmentos&&o.segmentos.includes(_opFilter));
+  if(_opFilter==='pendentes') ops=ops.filter(o=>o.status==='Pendente');
+  else if(_opFilter!=='todos') ops=ops.filter(o=>o.segmentos&&o.segmentos.includes(_opFilter));
   if(q) ops=ops.filter(o=>o.nome.toLowerCase().includes(q)||(o.produto||'').toLowerCase().includes(q)||(o.poc||'').toLowerCase().includes(q)||(o.cidades||'').toLowerCase().includes(q));
-  document.getElementById('opCount').textContent=`${ops.length} resultado(s)`;
-  if(!ops.length){document.getElementById('opTable').innerHTML=`<tr><td colspan="8"><div style="text-align:center;color:var(--text-muted);padding:28px">Nenhum resultado</div></td></tr>`;return;}
+  document.getElementById('opCount').textContent=ops.length+' resultado(s)';
+  if(!ops.length){document.getElementById('opTable').innerHTML='<tr><td colspan="8"><div style="text-align:center;color:var(--text-muted);padding:28px">Nenhum resultado</div></td></tr>';return;}
   document.getElementById('opTable').innerHTML=ops.map(op=>{
-    const segs=(op.segmentos||[]).map(sid=>{const seg=DB.segmentos.find(s=>s.id===sid);return seg?`<span style="padding:2px 6px;background:rgba(0,0,0,0.3);border:1px solid ${seg.cor}50;color:${seg.cor};border-radius:4px;font-size:10px">${seg.icone} ${seg.nome}</span>`:''}).join(' ');
+    const segs=(op.segmentos||[]).map(sid=>{const seg=DB.segmentos.find(s=>s.id===sid);return seg?'<span style="padding:2px 6px;background:rgba(0,0,0,0.3);border:1px solid '+seg.cor+'50;color:'+seg.cor+';border-radius:4px;font-size:10px">'+seg.icone+' '+seg.nome+'</span>':''}).join(' ');
     const instaDiv=op.insta?'<div style="font-size:10px;color:var(--text-muted)">'+op.insta+'</div>':'';
     const cidadeTags=(op.cidades||'').split(',').map(c=>'<span class="city-tag">'+c.trim()+'</span>').join('')||'—';
+    const isPendente=op.status==='Pendente';
+    const acoes=isPendente
+      ?'<button class="btn btn-gold btn-sm" onclick="openAprovar('+op.id+')">Aprovar</button>'
+       +'<button class="btn btn-danger btn-sm" onclick="rejeitarOp('+op.id+')">Rejeitar</button>'
+      :'<button class="btn btn-outline btn-sm" onclick="editOp('+op.id+')">Editar</button>'
+       +'<button class="btn btn-danger btn-sm" onclick="delOp('+op.id+')">✕</button>';
     return '<tr><td><div style="font-weight:600">'+op.nome+(op.isHoly?' ✦':'')+' </div>'+instaDiv+'</td>'
-      +'<td style="max-width:140px;font-size:12px;color:var(--text-muted)">'+( op.produto||'—')+'</td>'
+      +'<td style="max-width:140px;font-size:12px;color:var(--text-muted)">'+(op.produto||'—')+'</td>'
       +'<td>'+(segs||'—')+'</td>'
       +'<td><span class="tag">'+(op.tipo||'—')+'</span></td>'
-      +'<td><div>'+(op.poc||'—')+'</div><div style="font-size:11px;color:var(--text-muted)">'+( op.tel||'')+'</div></td>'
+      +'<td><div>'+(op.poc||'—')+'</div><div style="font-size:11px;color:var(--text-muted)">'+(op.tel||'')+'</div></td>'
       +'<td>'+cidadeTags+'</td>'
       +'<td><span class="badge '+(STATUS_BADGE[op.status]||'badge-blue')+'">'+op.status+'</span></td>'
-      +'<td><div class="actions-cell">'
-      +'<button class="btn btn-outline btn-sm" onclick="editOp('+op.id+')">Editar</button>'
-      +'<button class="btn btn-danger btn-sm" onclick="delOp('+op.id+')">✕</button>'
-      +'</div></td></tr>';
+      +'<td><div class="actions-cell">'+acoes+'</div></td></tr>';
   }).join('');
 }
 let _opBloqueios=[];
@@ -2833,6 +3159,47 @@ function salvarOperador(){
 }
 
 function delOp(id){if(!confirm('Remover operador?'))return;DB.operadores=DB.operadores.filter(o=>o.id!==id);persist();apiDeleteOperador(id);renderOperadores();showToast('Removido');}
+
+// --- Aprovação de pendentes ---
+let _aprovarOpId=null;
+function openAprovar(id){
+  const op=DB.operadores.find(o=>o.id===id);
+  if(!op)return;
+  _aprovarOpId=id;
+  // Preenche modal de aprovação
+  document.getElementById('aprNome').textContent=op.nome;
+  document.getElementById('aprProduto').textContent=op.produto||'—';
+  document.getElementById('aprTipo').textContent=op.tipo||'—';
+  document.getElementById('aprPoc').textContent=op.poc||'—';
+  document.getElementById('aprTel').textContent=op.tel||'—';
+  document.getElementById('aprInsta').textContent=op.insta||'—';
+  document.getElementById('aprCidades').textContent=op.cidades||'—';
+  document.getElementById('aprObs').textContent=op.obs||'—';
+  const segs=(op.segmentos||[]).map(sid=>{const s=DB.segmentos.find(x=>x.id===sid);return s?s.icone+' '+s.nome:sid;}).join(', ')||'—';
+  document.getElementById('aprSegs').textContent=segs;
+  // Status destino
+  document.getElementById('aprStatusSel').value='Contratado';
+  document.getElementById('mAprovar').classList.add('open');
+}
+async function aprovarOp(){
+  const op=DB.operadores.find(o=>o.id===_aprovarOpId);
+  if(!op)return;
+  const novoStatus=document.getElementById('aprStatusSel').value;
+  op.status=novoStatus;
+  persist();
+  try{await _apiFetch('/operadores/'+_aprovarOpId,{method:'PUT',body:JSON.stringify({status:novoStatus})});}
+  catch(e){console.warn('aprovar API:',e.message);}
+  closeModal('mAprovar');
+  renderOpFilters();renderOperadores();
+  showToast('✓ Operador aprovado como '+novoStatus+'!');
+}
+function rejeitarOp(id,skipConfirm){
+  if(!skipConfirm&&!confirm('Rejeitar este operador? Isso removerá o cadastro permanentemente.'))return;
+  DB.operadores=DB.operadores.filter(o=>o.id!==id);
+  persist();apiDeleteOperador(id);
+  renderOpFilters();renderOperadores();
+  showToast('Operador rejeitado e removido.');
+}
 
 // =============================================
 // SEGMENTOS
