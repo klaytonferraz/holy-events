@@ -1674,11 +1674,13 @@ function renderDashboard(){
       const dk=day.toISOString().split('T')[0];
       const isToday=day.getTime()===today.getTime();
       const cid=ev.cidades[0]||'';
-      const opIds=getSlotOpIds(ev,cid,dk);
-      const ops=[...new Set(opIds)].map(id=>DB.operadores.find(o=>o.id===id)).filter(Boolean);
+      const slots=getSlots(ev,cid,dk);
+      // Deduplica por operador, mantendo segId do primeiro slot
+      const seen=new Set();
+      const uniqueSlots=slots.filter(s=>{if(seen.has(s.id))return false;seen.add(s.id);return true;});
+      const slotOps=uniqueSlots.map(s=>{const op=DB.operadores.find(o=>o.id===s.id);const seg=DB.segmentos.find(x=>x.id===s.segId);return op?{op,seg}:null;}).filter(Boolean);
       const totalV=getDayVagasTotal(ev,dk,cid);
       const al=getDayAlertStatus(ev,dk,cid);
-      const evColor=DB.segmentos[0]?.cor||'#DFB250';
       return `<div class="upcoming-day ${isToday?'today':''}">
         <div class="upcoming-day-header">
           <div>
@@ -1686,13 +1688,12 @@ function renderDashboard(){
             <div style="font-size:16px;font-weight:700;color:${isToday?'var(--gold)':'var(--text)'}">${day.getDate()} ${MESES_C[day.getMonth()]}</div>
             <div style="font-size:10px;padding:1px 5px;border-radius:3px;margin-top:3px;background:rgba(223,178,80,0.12);color:var(--gold);font-weight:600">${ev.apelido||ev.nome}</div>
           </div>
-          ${al.icon&&al.status!=='ok'?'<span class="tooltip-wrap tip-left"><span class="alert-icon">'+al.icon+'</span><span class="tooltip-text">'+( al.title||'')+'</span></span>':''}
+          ${al.icon&&al.status!=='ok'?'<span class="tooltip-wrap tip-left"><span class="alert-icon">'+al.icon+'</span><span class="tooltip-text">'+(al.title||'')+'</span></span>':''}
         </div>
-        <div class="upcoming-day-body">
-          ${ops.slice(0,3).map(op=>{const seg=op.segmentos?.length?DB.segmentos.find(s=>s.id===op.segmentos[0]):null;return`<div class="upcoming-op" style="border-left-color:${seg?seg.cor:'#888'}">${op.nome}</div>`;}).join('')}
-          ${ops.length>3?`<div style="font-size:10px;color:var(--text-muted);padding:2px 0">+${ops.length-3} mais</div>`:''}
-          ${!ops.length?`<div style="font-size:10px;color:var(--text-muted);padding:4px 0">Sem operadores</div>`:''}
-          <div style="font-size:10px;color:${al.color||'var(--text-muted)'};margin-top:4px;font-weight:600">${opIds.length}/${totalV} vagas · ${ev.horarioInicio||'?'}–${ev.horarioFim||'?'}</div>
+        <div class="upcoming-day-body" style="max-height:160px;overflow-y:auto">
+          ${slotOps.map(({op,seg})=>'<div class="upcoming-op" style="border-left-color:'+(seg?seg.cor:'#888')+'">'+op.nome+'</div>').join('')}
+          ${!slotOps.length?'<div style="font-size:10px;color:var(--text-muted);padding:4px 0">Sem operadores</div>':''}
+          <div style="font-size:10px;color:${al.color||'var(--text-muted)'};margin-top:4px;font-weight:600">${slotOps.length}/${totalV} vagas · ${ev.horarioInicio||'?'}–${ev.horarioFim||'?'}</div>
         </div>
       </div>`;
     }).join('')+'</div>';
